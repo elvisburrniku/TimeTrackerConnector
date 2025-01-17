@@ -1,6 +1,9 @@
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
-import { Navbar } from "./_components/navbar";
+import { currentUser } from "@/lib/auth";
+import { Header } from "@/components/header/Header";
+import { TimeEntryProvider } from "@/_context/TimeEntryContext";
+
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -10,13 +13,18 @@ export default async function ProtectedLayout({
   children,
 }: ProtectedLayoutProps) {
   const session = await auth();
+  const user = await currentUser();
+
 
   return (
     <SessionProvider session={session}>
-      <div className="h-full w-full flex flex-col gap-y-10 items-center justify-center">
-        <Navbar />
-        {children}
-      </div>
+      <TimeEntryProvider>
+        <body className="antialiased bg-yellow-50">
+          <Header user={user ?? null} />
+          {children}
+        </body>
+      </TimeEntryProvider>
+
     </SessionProvider>
   );
 }
