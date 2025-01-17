@@ -128,6 +128,7 @@ model Notification {
 model Department {
   id        String   @id @default(cuid())
   name      String
+  info      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -150,11 +151,9 @@ model EmployeeDepartment {
   userId       String
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId String
-  role         Role       @default(EMPLOYEE)
-  roleId       String
+  role         EmployeeDepartmentRole       @default(EMPLOYEE)
 
   @@unique([userId, departmentId])
-  @@index([roleId])
   @@map("employee_departments")
 }
 
@@ -230,7 +229,7 @@ model DepartmentSchedule {
   @@map("department_schedules")
 }
 
-enum Role {
+enum EmployeeDepartmentRole {
   EMPLOYEE
   MANAGER
   ADMIN
