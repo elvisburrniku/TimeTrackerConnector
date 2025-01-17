@@ -1,13 +1,14 @@
-'use client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { EmployeeManagement } from '@/components/admin/EmployeeManagement'
 import { TimesheetApproval } from '@/components/admin/TimesheetApproval'
 import DepartmentManagement from '@/components/admin/DeparmentManagement'
+import { currentUser } from '@/lib/auth'
+import { getAllDepartments } from '@/actions/department'
 
-export default function SupervisorDashboard() {
-  const user  = useCurrentUser()
+export default async function SupervisorDashboard() {
+  const user  = await currentUser();
+  const departments = await getAllDepartments(user?.id ?? '');
 
   return (
     <div className="space-y-6 my-6 container mx-auto">
@@ -20,7 +21,7 @@ export default function SupervisorDashboard() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="employees" className="w-full">
+      <Tabs defaultValue="departments" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
@@ -28,7 +29,7 @@ export default function SupervisorDashboard() {
         </TabsList>
 
         <TabsContent value="departments">
-          <DepartmentManagement />
+          <DepartmentManagement departments={departments.departments ?? []} />
         </TabsContent>
         <TabsContent value="employees">
           <EmployeeManagement />

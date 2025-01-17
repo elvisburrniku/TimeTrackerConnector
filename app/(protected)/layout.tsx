@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { currentUser } from "@/lib/auth";
 import { Header } from "@/components/header/Header";
 import { TimeEntryProvider } from "@/_context/TimeEntryContext";
+import { Toaster } from "@/components/ui/toaster";
+
 
 
 interface ProtectedLayoutProps {
@@ -23,6 +25,7 @@ export default async function ProtectedLayout({
           <Header user={user ?? null} />
           {children}
         </body>
+        <Toaster />
       </TimeEntryProvider>
 
     </SessionProvider>

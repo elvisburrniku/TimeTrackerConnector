@@ -4,55 +4,112 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle,  } from '@/components/ui/dialog'
+import {  deleteDepartment,  getAllDepartments } from '@/actions/department'
+import { Department } from '@prisma/client'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
+import { AddDepartmentDialog } from './AddDepartmentDialog'
+import { useToast } from '@/hooks/use-toast'
+import { ReloadIcon } from '@radix-ui/react-icons'
 
-interface Department {
-    id: number;
-    name: string;
-    totalEmployees: number;
-    budget: number;
-    otherInfo: string;
+interface DepartmentManagementProps {
+    departments: DepartmentViewInterface[]
 }
 
-const mockDepartments: Department[] = [
-    { id: 1, name: 'HR', totalEmployees: 10, budget: 50000, otherInfo: 'Handles recruitment and employee relations' },
-    { id: 2, name: 'Engineering', totalEmployees: 25, budget: 200000, otherInfo: 'Develops and maintains products' },
-    { id: 3, name: 'Sales', totalEmployees: 15, budget: 100000, otherInfo: 'Manages client relationships and sales' },
-];
-
-export function DepartmentManagement() {
-    const [departments, setDepartments] = useState(mockDepartments)
+export function DepartmentManagement({ departments: d }: DepartmentManagementProps) {
+    const [departments, setDepartments] = useState(d);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('')
-    const [newDepartment, setNewDepartment] = useState({ name: '', totalEmployees: 0, budget: 0, otherInfo: '' })
     const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
     const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
+    const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false)
+    const [isAddDepartmentDialogOpen, setIsAddDepartmentDialogOpen] = useState(false)
+    const { toast } = useToast()
+    const user = useCurrentUser()
 
-    const filteredDepartments = departments.filter(department => 
+   
+    const filteredDepartments = departments.filter(department =>
         department.name.toLowerCase().includes(search.toLowerCase())
     )
 
-    const handleAddDepartment = () => {
-        setDepartments([...departments, { ...newDepartment, id: departments.length + 1 }])
-        setNewDepartment({ name: '', totalEmployees: 0, budget: 0, otherInfo: '' })
+    const reloadDepartments = async () => {
+        if (!user || !user.id) {
+            toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add a department' })
+            return
+        }
+    
+        setLoading(true)
+        const updatedDepartments = await getAllDepartments(user.id);
+        setDepartments(updatedDepartments.departments ?? [])
+        setLoading(false)
     }
 
-    const handleRemoveDepartment = (id: number) => {
-        setDepartments(departments.filter(dept => dept.id !== id))
-        setIsRemoveDialogOpen(false)
+    const handleRemoveDepartment = async (id: string) => {
+        if (!user || user.id === undefined) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to remove a department'
+            })
+            return
+        }
+        try {
+            const message = await deleteDepartment(user.id, id)
+            if (message.error) {
+                toast({ variant: 'destructive', title: 'Error', description: message.error })
+                return
+            }
+
+            setDepartments(departments.filter(dept => dept.id !== id.toString()))
+            setIsRemoveDialogOpen(false)
+            toast({ title: 'Success', description: message.success })
+        } catch {
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove department' })
+        }
     }
 
-    const handleAddEmployee = (id: number) => {
-        setDepartments(departments.map(dept => 
-            dept.id === id ? { ...dept, totalEmployees: dept.totalEmployees + 1 } : dept
-        ))
-    }
 
-    const handleRemoveEmployee = (id: number) => {
-        setDepartments(departments.map(dept => 
-            dept.id === id ? { ...dept, totalEmployees: dept.totalEmployees - 1 } : dept
-        ))
-    }
+    // const handleRemoveEmployee = async (selectedDepartmentId: string, employeeId: string) => {
+    //     if (!user || user.id === undefined) {
+    //         toast({
+    //             variant: 'destructive',
+    //             title: 'Error',
+    //             description: 'You must be logged in to remove an employee'
+    //         })
+    //         return
+    //     }
+    //     try {
+    //         const updatedDepartment = await removeEmployeeFromDepartment(user.id, selectedDepartmentId, employeeId)
+    //         if (updatedDepartment.error) {
+    //             toast({
+    //                 variant: 'destructive',
+    //                 title: 'Error',
+    //                 description: updatedDepartment.error
+    //             })
+
+    //             return
+    //         }
+
+    //         if (updatedDepartment.department) {
+    //             setDepartments(departments.map(dept =>
+    //                 dept.id === selectedDepartmentId ? updatedDepartment.department : dept
+    //             ))
+    //             toast({
+    //                 title: 'Success',
+    //                 description: updatedDepartment.success
+    //             })
+
+    //         }
+    //     } catch (error) {
+    //         toast({
+    //             variant: 'destructive',
+    //             title: 'Error',
+    //             description: 'Failed to remove employee'
+    //         })
+    //     }
+
+    // }
 
     return (
         <Card>
@@ -61,63 +118,21 @@ export function DepartmentManagement() {
             </CardHeader>
             <CardContent>
                 <div className="mb-4 flex justify-between">
-                    <Input 
-                        placeholder="Search departments" 
-                        value={search} 
+                    <Input
+                        placeholder="Search departments"
+                        value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="max-w-sm"
                     />
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button style={{backgroundColor: 'rgb(254, 159, 43)'}}>Add Department</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add New Department</DialogTitle>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="name" className="text-right">Name</Label>
-                                    <Input 
-                                        id="name" 
-                                        value={newDepartment.name} 
-                                        onChange={(e) => setNewDepartment({...newDepartment, name: e.target.value})}
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="totalEmployees" className="text-right">Total Employees</Label>
-                                    <Input 
-                                        id="totalEmployees" 
-                                        type="number"
-                                        value={newDepartment.totalEmployees} 
-                                        onChange={(e) => setNewDepartment({...newDepartment, totalEmployees: parseInt(e.target.value)})}
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="budget" className="text-right">Budget</Label>
-                                    <Input 
-                                        id="budget" 
-                                        type="number"
-                                        value={newDepartment.budget} 
-                                        onChange={(e) => setNewDepartment({...newDepartment, budget: parseInt(e.target.value)})}
-                                        className="col-span-3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="otherInfo" className="text-right">Other Info</Label>
-                                    <Input 
-                                        id="otherInfo" 
-                                        value={newDepartment.otherInfo} 
-                                        onChange={(e) => setNewDepartment({...newDepartment, otherInfo: e.target.value})}
-                                        className="col-span-3"
-                                    />
-                                </div>
-                            </div>
-                            <Button onClick={handleAddDepartment} style={{backgroundColor: 'rgb(254, 159, 43)'}}>Add Department</Button>
-                        </DialogContent>
-                    </Dialog>
+                    <div className='flex gap-4'>
+                    <Button onClick={reloadDepartments} variant={'outline'}><ReloadIcon /></Button>
+                    <Button onClick={() => setIsAddDepartmentDialogOpen(true)}>Add Department</Button>
+                    <AddDepartmentDialog
+                        isOpen={isAddDepartmentDialogOpen}
+                        setDepartments={setDepartments}
+                        onClose={() => setIsAddDepartmentDialogOpen(false)}
+                    />
+                    </div>
                 </div>
                 <Table>
                     <TableHeader>
@@ -130,16 +145,26 @@ export function DepartmentManagement() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredDepartments.map((department) => (
+                        {
+                        loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className='text-center'>Loading...</TableCell>
+                            </TableRow>
+                        ) :
+                        filteredDepartments.length === 0 ? (
+                            <TableRow className=''>
+                                <TableCell colSpan={5} className="text-center pt-4">No departments found</TableCell>
+                            </TableRow>
+                        ) :
+                        filteredDepartments.map((department) => (
                             <TableRow key={department.id}>
                                 <TableCell>{department.name}</TableCell>
-                                <TableCell>{department.totalEmployees}</TableCell>
-                                <TableCell>${department.budget}</TableCell>
-                                <TableCell>{department.otherInfo}</TableCell>
+                                <TableCell>{department.employeeCount}</TableCell>
+                                <TableCell>${department.totalCost.toString()}</TableCell>
+                                <TableCell>{department.info}</TableCell>
                                 <TableCell className='flex gap-4'>
-                                   <Button size="sm" onClick={() => handleRemoveEmployee(department.id)}>View/RemoveEmployee</Button>
+                                    <Button size="sm" onClick={() => {setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true)}}>Add Employee</Button>
                                     <Button variant="destructive" size="sm" onClick={() => { setSelectedDepartment(department); setIsRemoveDialogOpen(true); }}>Delete</Button>
-                                    <Button size="sm" onClick={() => handleAddEmployee(department.id)}>Add Employee</Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -152,7 +177,7 @@ export function DepartmentManagement() {
                         <DialogHeader>
                             <DialogTitle>Confirm Remove</DialogTitle>
                         </DialogHeader>
-                        <p>Are you sure you want to remove the department "{selectedDepartment.name}"?</p>
+                        <p>Are you sure you want to remove the department &quot;{selectedDepartment.name}&quot;?</p>
                         <div className="flex justify-end gap-4 mt-4">
                             <Button variant="outline" onClick={() => setIsRemoveDialogOpen(false)}>Cancel</Button>
                             <Button variant="destructive" onClick={() => handleRemoveDepartment(selectedDepartment.id)}>Remove</Button>
@@ -160,8 +185,22 @@ export function DepartmentManagement() {
                     </DialogContent>
                 </Dialog>
             )}
+
+            {selectedDepartment && (
+                <AddEmployeeToDepartmentDialog department={selectedDepartment} isOpen={isAddEmployeeDialogOpen} onOpenChange={val => {
+                    setIsAddEmployeeDialogOpen(val);
+                    reloadDepartments();
+                }
+                } />
+            )}
         </Card>
     )
 }
 
 export default DepartmentManagement;
+
+
+export interface DepartmentViewInterface extends Department {
+    employeeCount: number,
+    totalCost: number
+}
