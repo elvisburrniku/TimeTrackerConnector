@@ -2,8 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { EmployeeManagement } from '@/components/EmployeeManagement'
-import { TimesheetApproval } from '@/components/TimesheetApproval'
+import { EmployeeManagement } from '@/components/admin/EmployeeManagement'
+import { TimesheetApproval } from '@/components/admin/TimesheetApproval'
+import DepartmentManagement from '@/components/admin/DeparmentManagement'
 
 export default function SupervisorDashboard() {
   const user  = useCurrentUser()
@@ -20,10 +21,15 @@ export default function SupervisorDashboard() {
       </Card>
 
       <Tabs defaultValue="employees" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
           <TabsTrigger value="timesheets">Timesheet Approval</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="departments">
+          <DepartmentManagement />
+        </TabsContent>
         <TabsContent value="employees">
           <EmployeeManagement />
         </TabsContent>
