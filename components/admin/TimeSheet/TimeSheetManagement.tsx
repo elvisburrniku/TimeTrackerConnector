@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, set } from 'date-fns'
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Department, EmployeeDepartment, EmployeeDepartmentRole, TimeEntry, TimeEntryStatus } from '@prisma/client'
 import {
@@ -18,7 +18,6 @@ import {
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { TimeEntryTable } from './TimeEntryTable'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { getPermittedDepartmentsInfo } from '@/actions/department'
 
 interface TimeSheetManagementProps {
   userId: string
@@ -36,7 +35,6 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
   const [currentWeek, setCurrentWeek] = useState(new Date())
   
   const { toast } = useToast()
-  const user = useCurrentUser()
 
 
   const canApproveTimeEntries = (departmentId: string) => {
@@ -67,7 +65,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
     employeeDepartments.forEach(({ departmentId }) => {
       fetchWeeklyReportForDepartment(departmentId)
     })
-  }, [currentWeek])
+  }, [currentWeek, employeeDepartments])
 
   const handleApproveEntry = async (timeEntryId: string) => {
     if (!canApproveTimeEntries(selectedDepartment)) {
@@ -267,6 +265,7 @@ function DepartmentTimesheet({
   onDiscard: (id: string) => Promise<void>
   onApproveAll: (departmentId: string) => Promise<void>
 }) {
+  console.log(role)
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">

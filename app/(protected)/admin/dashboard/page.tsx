@@ -1,12 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EmployeeViewInterface, EmployeeManagement } from '@/components/admin/EmployeeManagement'
-import { TimesheetApproval } from '@/components/admin/TimesheetApproval'
 import DepartmentManagement, { DepartmentViewInterface } from '@/components/admin/DeparmentManagement'
 import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
-import { User } from '@prisma/client'
 
 export default async function SupervisorDashboard() {
   const user  = await currentUser();
@@ -43,7 +41,6 @@ export default async function SupervisorDashboard() {
         <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
-          <TabsTrigger value="timesheets">Timesheet Approval</TabsTrigger>
         </TabsList>
 
         <TabsContent value="departments">
@@ -51,9 +48,6 @@ export default async function SupervisorDashboard() {
         </TabsContent>
         <TabsContent value="employees">
           <EmployeeManagement employees={employees} departments={departments} />
-        </TabsContent>
-        <TabsContent value="timesheets">
-          <TimesheetApproval />
         </TabsContent>
       </Tabs>
     </div>

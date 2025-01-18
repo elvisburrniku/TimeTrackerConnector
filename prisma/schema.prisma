@@ -67,7 +67,9 @@ model User {
   timeOffRequests     TimeOffRequest[]
   approvedTimeoffs    TimeOffRequest[]     @relation("ApprovedBy")
   approvedEntries     TimeEntry[]          @relation("TimeEntryApprover")
+  replacementRequests TimeOffRequest[]     @relation("Replacement")
   departmentSchedules DepartmentSchedule[]
+  createdSchedules    DepartmentSchedule[] @relation("ScheduleCreator")
   notifications       Notification[]
 
   @@map("users")
@@ -197,6 +199,9 @@ model TimeOffRequest {
   approvedBy   User?   @relation("ApprovedBy", fields: [approvedById], references: [id])
   approvedById String?
 
+  replacementEmployee User?   @relation("Replacement", fields: [replacementId], references: [id])
+  replacementId      String?
+
   @@index([startDate, endDate])
   @@map("time_off_requests")
 }
@@ -213,9 +218,9 @@ model Holiday {
 
 model DepartmentSchedule {
   id         String   @id @default(cuid())
-  date       DateTime @db.Date
-  shiftStart DateTime @db.Time
-  shiftEnd   DateTime @db.Time
+  weekStart  DateTime @db.Date
+  weekEnd    DateTime @db.Date
+  schedules  WorkShift[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -224,9 +229,25 @@ model DepartmentSchedule {
   departmentId String
   employee     User       @relation(fields: [userId], references: [id])
   userId       String
+  createdBy    User       @relation("ScheduleCreator", fields: [createdById], references: [id])
+  createdById  String
 
-  @@index([date])
+  @@index([weekStart, weekEnd])
   @@map("department_schedules")
+}
+
+model WorkShift {
+  id          String   @id @default(cuid())
+  dayOfWeek   Int      // 0-6 for Sunday-Saturday
+  startTime   DateTime @db.Time
+  endTime     DateTime @db.Time
+  isRecurring Boolean  @default(false)
+  
+  // Relations
+  schedule    DepartmentSchedule @relation(fields: [scheduleId], references: [id])
+  scheduleId  String
+
+  @@map("work_shifts")
 }
 
 enum EmployeeDepartmentRole {

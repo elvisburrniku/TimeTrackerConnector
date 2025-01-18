@@ -14,6 +14,7 @@ import { Badge } from '../ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible'
 import TimeSheetManagement from './TimeSheet/TimeSheetManagement'
+import ScheduleManagement from './TimeSheet/ScheduleManagement'
 
 
 
@@ -227,6 +228,7 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
                         <div className="p-4 bg-slate-50 rounded-lg">
                           <h4 className="font-medium mb-4">Weekly Schedule</h4>
                           {/* Schedule component here */}
+                          <ScheduleManagement userId={employee.id} employeeDepartments={employee.departments} />
                         </div>
                       </TabsContent>
 
