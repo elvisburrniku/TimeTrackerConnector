@@ -9,7 +9,7 @@ import { format } from 'date-fns'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 
 export function TimeEntryList() {
-  const { recentEntries } = useTimeEntry()
+  const { recentEntries, departmentMap } = useTimeEntry()
 
   const [search, setSearch] = useState('')
 
@@ -63,8 +63,7 @@ export function TimeEntryList() {
             {filteredEntries.map((entry) => (
               <TableRow key={entry.id}>
                 <TableCell>{entry.createdAt.toISOString().split('T')[0]}</TableCell>
-                <TableCell>{entry.departmentId}</TableCell>
-
+                <TableCell>{departmentMap[entry.departmentId]?.name}</TableCell>
                 <TableCell>{format(new Date(entry.clockIn), 'yyyy-MM-dd HH:mm:ss')}</TableCell>
                 <TableCell>{entry.clockOut ? format(new Date(entry.clockOut), 'yyyy-MM-dd HH:mm:ss') : 'N/A'}</TableCell>
                 <TableCell>{Number(entry.hours).toFixed(2)}</TableCell>

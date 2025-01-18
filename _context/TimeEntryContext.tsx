@@ -11,6 +11,7 @@ type TimeEntryContextType = {
   clockOut: (timeEntryId: string) => void
   addEntry: (entry: TimeEntry) => void
   departments: Department[]
+  departmentMap: { [key: string]: Department }
 }
 
 const TimeEntryContext = createContext<TimeEntryContextType | undefined>(undefined)
@@ -29,6 +30,12 @@ export function TimeEntryProvider({ children,
   const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(currentEntryProp)
   const [recentEntries, setRecentEntries] = useState<TimeEntry[]>(recentEntriesProp)
   const [departments, setDepartments] = useState<Department[]>(departmentsProp)
+  const [departmentMap, setDepartmentMap] = useState<{ [key: string]: Department }>({})
+  useEffect(() => {
+    setDepartmentMap(departmentsProp.reduce((acc, dept) => {
+      return { ...acc, [dept.id]: dept }
+    }, {}))
+  }, [departmentsProp])
 
 
   const clockIn = async (newEntry: TimeEntry) => {
@@ -60,7 +67,7 @@ export function TimeEntryProvider({ children,
   }
 
   return (
-    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut, addEntry, departments }}>
+    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut, addEntry, departments, departmentMap }}>
       {children}
     </TimeEntryContext.Provider>
   )
