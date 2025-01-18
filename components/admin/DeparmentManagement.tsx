@@ -70,47 +70,6 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     }
 
 
-    // const handleRemoveEmployee = async (selectedDepartmentId: string, employeeId: string) => {
-    //     if (!user || user.id === undefined) {
-    //         toast({
-    //             variant: 'destructive',
-    //             title: 'Error',
-    //             description: 'You must be logged in to remove an employee'
-    //         })
-    //         return
-    //     }
-    //     try {
-    //         const updatedDepartment = await removeEmployeeFromDepartment(user.id, selectedDepartmentId, employeeId)
-    //         if (updatedDepartment.error) {
-    //             toast({
-    //                 variant: 'destructive',
-    //                 title: 'Error',
-    //                 description: updatedDepartment.error
-    //             })
-
-    //             return
-    //         }
-
-    //         if (updatedDepartment.department) {
-    //             setDepartments(departments.map(dept =>
-    //                 dept.id === selectedDepartmentId ? updatedDepartment.department : dept
-    //             ))
-    //             toast({
-    //                 title: 'Success',
-    //                 description: updatedDepartment.success
-    //             })
-
-    //         }
-    //     } catch (error) {
-    //         toast({
-    //             variant: 'destructive',
-    //             title: 'Error',
-    //             description: 'Failed to remove employee'
-    //         })
-    //     }
-
-    // }
-
     return (
         <Card>
             <CardHeader>

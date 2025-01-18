@@ -7,35 +7,120 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Department, EmployeeDepartment, User, EmployeeDepartmentRole } from '@prisma/client'
+import { addEmployeeToDepartment, getEmployessByDepartmentIds, removeEmployeeFromDepartment, updateEmployeeRole } from '@/actions/employees'
+import { useToast } from '@/hooks/use-toast'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { ReloadIcon } from '@radix-ui/react-icons'
+import { Separator } from '../ui/separator'
 
-const mockEmployees = [
-  { id: 1, name: 'John Doe', department: 'Engineering', pay: '$25/hr' },
-  { id: 2, name: 'Jane Smith', department: 'Marketing', pay: '$22/hr' },
-  { id: 3, name: 'Bob Johnson', department: 'Sales', pay: '$20/hr' },
-]
 
-export function EmployeeManagement() {
-  const [employees, setEmployees] = useState(mockEmployees)
+
+export interface EmployeeViewInterface extends User {
+  departments: (EmployeeDepartment & { hourlyRate: number })[]
+}
+
+interface EmployeeManagementProps {
+  employees: EmployeeViewInterface[]
+  departments: Department[]
+}
+
+export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeManagementProps) {
+  const [employees, setEmployees] = useState(_e)
+  const [departments] = useState(_d.map(dept => ({ ...dept, [dept.id]: dept })))
   const [search, setSearch] = useState('')
   const [newEmployee, setNewEmployee] = useState({ name: '', department: '', pay: '' })
-
-  const filteredEmployees = employees.filter(employee => 
-    employee.name.toLowerCase().includes(search.toLowerCase()) || 
-    employee.department.toLowerCase().includes(search.toLowerCase())
+  const { toast } = useToast()
+  const user = useCurrentUser()
+  const [loading, setLoading] = useState(false)
+  const filteredEmployees = employees.filter(employee =>
+    employee.name?.toLowerCase().includes(search.toLowerCase()) ||
+    employee.departments.some(dept => departments.find(d => d.id === dept.departmentId)?.name.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const handleAddEmployee = () => {
-    setEmployees([...employees, { ...newEmployee, id: employees.length + 1 }])
-    setNewEmployee({ name: '', department: '', pay: '' })
+  const handleAddEmployee = async () => {
+    if (!newEmployee.name || !newEmployee.department || !newEmployee.pay) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please fill all fields',
+      })
+      return
+    }
+
+    if (!user || !user.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to add an employee',
+      })
+      return
+    }
   }
 
-  const handleRemoveEmployee = (id: number) => {
-    setEmployees(employees.filter(emp => emp.id !== id))
+  const reloadEmployee = async () => {
+    if (!user || !user.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to add an employee',
+      })
+
+      return;
+    }
+
+    setLoading(true)
+    const response = await getEmployessByDepartmentIds(user.id, departments.map(d => d.id))
+    if ('employees' in response) {
+      setEmployees(response.employees ?? [])
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: response.error,
+      })
+    }
+    setLoading(false)
   }
 
-  const handleChangePay = (id: number, newPay: string) => {
-    setEmployees(employees.map(emp => emp.id === id ? { ...emp, pay: newPay } : emp))
+  const handleRemoveEmployee = async (employeeId: string, departmentId: string) => {
+    if (!user || !user.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to remove an employee',
+      })
+      return
+    }
+
+    const response = await removeEmployeeFromDepartment(user.id, departmentId, employeeId.toString())
+    if ('success' in response) {
+      toast({
+        title: 'Success',
+        description: response.success,
+      })
+      setEmployees(employees.filter(emp => emp.id !== employeeId))
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: response.error,
+      })
+    }
   }
+
+  const handleChangePay = async (employeeId: string, departmentId: string, pay: string, role: EmployeeDepartmentRole) => {
+    if (!user || !user.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to update an employee',
+      })
+    }
+  }
+
+  console.log(employees)
+  console.log(departments)
 
   return (
     <Card>
@@ -44,84 +129,100 @@ export function EmployeeManagement() {
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex justify-between">
-          <Input 
-            placeholder="Search employees" 
-            value={search} 
+          <Input
+            placeholder="Search employees"
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
           />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button style={{backgroundColor: 'rgb(254, 159, 43)'}}>Add Employee</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Employee</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">Name</Label>
-                  <Input 
-                    id="name" 
-                    value={newEmployee.name} 
-                    onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="department" className="text-right">Department</Label>
-                  <Select 
-                    onValueChange={(value) => setNewEmployee({...newEmployee, department: value})}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Engineering">Engineering</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Sales">Sales</SelectItem>
-                      <SelectItem value="Human Resources">Human Resources</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="pay" className="text-right">Pay Rate</Label>
-                  <Input 
-                    id="pay" 
-                    value={newEmployee.pay} 
-                    onChange={(e) => setNewEmployee({...newEmployee, pay: e.target.value})}
-                    className="col-span-3"
-                    placeholder="e.g. $20/hr"
-                  />
-                </div>
-              </div>
-              <Button onClick={handleAddEmployee} style={{backgroundColor: 'rgb(254, 159, 43)'}}>Add Employee</Button>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={reloadEmployee} variant={'outline'} disabled={loading}>
+            {loading ? (
+              <>
+                <ReloadIcon />
+                {' Reloading...'}
+              </>
+            ) : (
+              <>
+                <ReloadIcon />
+                {' Reload Employees'}
+              </>
+            )}
+          </Button>
+
         </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Department</TableHead>
-              <TableHead>Pay</TableHead>
+              <TableHead>Role($Pay)</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
+            {loading && (
+              <TableRow>
+                <TableCell colSpan={4}>Loading...</TableCell>
+              </TableRow>
+            )}
+
             {filteredEmployees.map((employee) => (
               <TableRow key={employee.id}>
-                <TableCell>{employee.name}</TableCell>
-                <TableCell>{employee.department}</TableCell>
                 <TableCell>
-                  <Input 
-                    value={employee.pay} 
-                    onChange={(e) => handleChangePay(employee.id, e.target.value)}
-                    className="w-24"
-                  />
+                  <div>{employee.name}</div>
+                  <div
+                    className='text-gray-500 text-xs'
+                  >{employee.email}</div>
                 </TableCell>
+                <TableCell>{employee.departments.map(dept => departments.find(d => d.id === dept.departmentId)?.name).join(', ')}</TableCell>
                 <TableCell>
-                  <Button variant="destructive" size="sm" onClick={() => handleRemoveEmployee(employee.id)}>Remove</Button>
+                  {employee.departments.map(dept => (
+                    <div key={dept.departmentId} className="mb-2 flex flex-col">
+                      <Select
+                        value={dept.role}
+                      >
+                        <SelectTrigger>
+                          <SelectValue>{dept.role}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(EmployeeDepartmentRole).map(role => (
+                            <SelectItem key={role} value={role}>{role}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        value={dept.hourlyRate}
+                        onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
+                        className="w-24"
+                      />
+                    </div>
+                  ))}
+                </TableCell>
+                <TableCell className='flex flex-col space-y-2'>
+                  {employee.departments.map(dept => (
+                    <div key={dept.departmentId} className="mb-2 flex flex-col space-y-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveEmployee(employee.id, dept.departmentId)}
+                      >
+                        Remove from {departments.find(d => d.id === dept.departmentId)?.name}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)}
+                      >
+                        Update Role at {departments.find(d => d.id === dept.departmentId)?.name}
+                      </Button>
+
+                    </div>
+                  ))}
+                  <Separator />
+                  <div className='flex space-x-2 mt-2'>
+                    <Button>View Schedule</Button>
+                    <Button>View Weekly Timesheet</Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -131,4 +232,3 @@ export function EmployeeManagement() {
     </Card>
   )
 }
-

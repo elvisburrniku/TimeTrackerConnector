@@ -1,14 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { EmployeeManagement } from '@/components/admin/EmployeeManagement'
+import { EmployeeViewInterface, EmployeeManagement } from '@/components/admin/EmployeeManagement'
 import { TimesheetApproval } from '@/components/admin/TimesheetApproval'
-import DepartmentManagement from '@/components/admin/DeparmentManagement'
+import DepartmentManagement, { DepartmentViewInterface } from '@/components/admin/DeparmentManagement'
 import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
+import { getEmployessByDepartmentIds } from '@/actions/employees'
+import { User } from '@prisma/client'
 
 export default async function SupervisorDashboard() {
   const user  = await currentUser();
-  const departments = await getAllDepartments(user?.id ?? '');
+  let departments: DepartmentViewInterface[] = [];
+  let employees: EmployeeViewInterface[] = [];
+
+
+  if (user && user.id) {
+    const departments_resp = await getAllDepartments(user.id);
+    if (departments_resp && departments_resp.departments) {
+      departments = departments_resp.departments;
+    }
+  }
+  if (departments && departments.length > 0) {
+    const employees_resp = (await getEmployessByDepartmentIds(user?.id ?? '', departments.map(department => department.id)));
+    if (employees_resp && employees_resp.employees) {
+      employees = employees_resp.employees;
+    }    
+  }
+
 
   return (
     <div className="space-y-6 my-6 container mx-auto">
@@ -29,10 +47,10 @@ export default async function SupervisorDashboard() {
         </TabsList>
 
         <TabsContent value="departments">
-          <DepartmentManagement departments={departments.departments ?? []} />
+          <DepartmentManagement departments={departments ?? []} />
         </TabsContent>
         <TabsContent value="employees">
-          <EmployeeManagement />
+          <EmployeeManagement employees={employees} departments={departments} />
         </TabsContent>
         <TabsContent value="timesheets">
           <TimesheetApproval />

@@ -4,11 +4,13 @@ import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Department, User, EmployeeDepartmentRole } from '@prisma/client';
-import { addEmployeeToDepartment } from '@/actions/department';
+import { addEmployeeToDepartment, removeEmployeeFromDepartment } from '@/actions/department';
 import { searchUsers } from '@/data/user';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { cx } from 'class-variance-authority';
+import { Badge } from '../ui/badge';
 
 interface AddEmployeeToDepartmentDialogProps {
     isOpen: boolean;
@@ -82,9 +84,47 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
         }
     };
 
+    const handleRemoveEmployeeFromDepartment = async ({ employeeId, departmentId }: { employeeId: string, departmentId: string }) => {
+        if (!user || !user.id) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to remove an employee',
+            })
+            return;
+        }
+
+        try {
+            const updatedDepartment = await removeEmployeeFromDepartment(user.id, departmentId, employeeId)
+            if (updatedDepartment.error) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: updatedDepartment.error
+                })
+
+                return
+            }
+
+            if (updatedDepartment.success) {
+
+                setEmployees(employees.filter((employee) => employee.id !== employeeId && employee.departments.some((employeeDepartment) => employeeDepartment.departmentId !== departmentId)))
+                toast({
+                    title: 'Success',
+                    description: updatedDepartment.success
+                })
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to remove employee'
+            })
+        }
+    }
     return (
         <div>
-            <Dialog open={isOpen} onOpenChange={() => onOpenChange(false)}>
+            <Dialog open={isOpen} onOpenChange={() => onOpenChange(false)} >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add Employee</DialogTitle>
@@ -99,7 +139,7 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
                                     onChange={(e) => {
                                         setSearch(e.target.value);
                                     }}
-                                    placeholder='Search for employees'
+                                    placeholder='email or name'
                                     className="w-full"
                                 />
                             </div>
@@ -120,7 +160,10 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
 
                                 {employees.length === 0 && <div className="text-center my-2">No employees found</div>}
                                 {employees.map((employee) => (
-                                    <div key={employee.id} className="my-2 p-4 border rounded-lg shadow-sm">
+                                    <div key={employee.id} className={cx("my-2 p-4 border rounded-lg shadow-sm", {
+                                        'bg-gray-100': employee.departments.some((employeeDepartment) => employeeDepartment.departmentId === department.id),
+                                        'bg-gray-200': employee.id === user?.id
+                                    })}>
                                         <form key={employee.id} onSubmit={(e) => {
                                             e.preventDefault();
                                             const formData = new FormData(e.currentTarget);
@@ -137,39 +180,64 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
                                                     <br />
                                                     <span className="text-sm text-gray-500">{employee.email}</span>
                                                 </div>
+                                                <div className='flex gap-2'>
                                                 {employee.departments.length > 0 && employee.departments.map((employeeDepartment) => (
-                                                    <span key={employeeDepartment.id} className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-md">
+                                                    <Badge key={employeeDepartment.id} className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-md">
                                                         {employeeDepartment.departmentId === department.id ? 'Already in department' : 'In another department'}
-                                                    </span>
+                                                    </Badge>
                                                 ))}
-                                                <Button type="submit" className="ml-4">Add</Button>
+
+                                                {employee.id === user?.id && (
+                                                    <Badge variant='destructive'>You</Badge>
+                                                )}
+                                                </div>
                                             </div>
                                             <div className="grid grid-cols-1 gap-4">
-                                                <div>
-                                                    <Label htmlFor={`role-${employee.id}`} className="block mb-1">Role</Label>
-                                                    <select
-                                                        id={`role-${employee.id}`}
-                                                        name="role"
-                                                        className="w-full p-2 border rounded-md"
-                                                    >
-                                                        {Object.values(EmployeeDepartmentRole).map((role) => (
-                                                            <option key={role} value={role}>
-                                                                {role}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <Label htmlFor={`role-${employee.id}`} className="block mb-1">Role</Label>
+                                                        <select
+                                                            id={`role-${employee.id}`}
+                                                            name="role"
+                                                            className="w-full p-2 border rounded-md"
+                                                        >
+                                                            {Object.values(EmployeeDepartmentRole).map((role) => (
+                                                                <option key={role} value={role}>
+                                                                    {role}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor={`rate-${employee.id}`} className="block mb-1">Rate</Label>
+                                                        <Input
+                                                            id={`rate-${employee.id}`}
+                                                            name="rate"
+                                                            type="number"
+                                                            className="w-full p-2 border rounded-md"
+                                                            step="0.01"
+                                                            required
+                                                            min={0}
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div>
-                                                    <Label htmlFor={`rate-${employee.id}`} className="block mb-1">Rate</Label>
-                                                    <Input
-                                                        id={`rate-${employee.id}`}
-                                                        name="rate"
-                                                        type="number"
-                                                        className="w-full p-2 border rounded-md"
-                                                        step="0.01"
-                                                        required
-                                                        min={0}
-                                                    />
+                                                    
+                                                    {/* Remove from current department if exists */}
+                                                    {employee.departments.some((employeeDepartment) => employeeDepartment.departmentId === department.id) ? (
+                                                        <Button
+                                                            onClick={() =>
+                                                                handleRemoveEmployeeFromDepartment({
+                                                                    employeeId: employee.id,
+                                                                    departmentId: department.id,
+                                                                })
+                                                            }
+                                                            className="ml-4"
+                                                            variant={'destructive'}
+                                                        >
+                                                            Remove
+                                                        </Button>
+                                                    ) : <Button type="submit" className="ml-4">Add</Button>}
                                                 </div>
                                             </div>
                                         </form>

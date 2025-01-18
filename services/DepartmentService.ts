@@ -88,7 +88,7 @@ class DepartmentService {
         departmentId,
       },
     });
-
+    console.log(userDeparmentRole);
     if (!user || (user.role !== UserRole.ADMIN && userDeparmentRole?.role !== EmployeeDepartmentRole.MANAGER)) {
       console.error("Permission denied: Only ADMIN or MANAGER can add an employee to a department.");
       return null;
@@ -101,15 +101,41 @@ class DepartmentService {
       return null;
     }
 
+
+
     try {
-      await db.employeeDepartment.create({
-        data: {
-          departmentId,
+      const employeeExists = await db.employeeDepartment.findFirst({
+        where: {
           userId: employeeId,
-          role,
-          hourlyRate: new Decimal(rate),
+          departmentId,
         },
       });
+
+      if (employeeExists) {
+        // update
+        await db.employeeDepartment.update({
+          where: {
+            userId_departmentId: {
+              departmentId,
+              userId: employeeId,
+            },
+          },
+          data: {
+            role,
+            hourlyRate: new Decimal(rate),
+          },
+        });
+      } else {
+
+        await db.employeeDepartment.create({
+          data: {
+            departmentId,
+            userId: employeeId,
+            role,
+            hourlyRate: new Decimal(rate),
+          },
+        });
+      }
 
       department.employeeCount = await this.getTotalEmployeeCount(departmentId);
       department.totalCost = await this.getEmployeeCost(departmentId);
@@ -153,7 +179,7 @@ class DepartmentService {
           },
         },
       });
-      
+
       department.employeeCount = await this.getTotalEmployeeCount(departmentId);
       department.totalCost = await this.getEmployeeCost(departmentId);
 
@@ -206,7 +232,7 @@ class DepartmentService {
     }
   }
 
-  async getUserPermittedDepartments(userId: string): Promise<DepartmentViewInterface[]| null> {
+  async getUserPermittedDepartments(userId: string): Promise<DepartmentViewInterface[] | null> {
     const role = await currentRole();
 
     if (role === UserRole.ADMIN) {
@@ -234,6 +260,38 @@ class DepartmentService {
       return depertmentsInfo
     } catch (error) {
       console.error("Error getting permitted departments:", error);
+      return null;
+    }
+  }
+
+  async updateEmployeeRole(userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole): Promise<EmployeeDepartment | null> {
+    const user = await db.user.findUnique({ where: { id: userId } });
+    const userDeparmentRole = await db.employeeDepartment.findFirst({
+      where: {
+        userId,
+        departmentId,
+      },
+    });
+    if (!user || (user.role !== UserRole.ADMIN && userDeparmentRole?.role !== EmployeeDepartmentRole.MANAGER)) {
+      console.error("Permission denied: Only ADMIN or MANAGER can update employee role.");
+      return null;
+    }
+
+    try {
+      const employee = await db.employeeDepartment.update({
+        where: {
+          userId_departmentId: {
+            departmentId,
+            userId: employeeId,
+          },
+        },
+        data: {
+          role,
+        },
+      });
+      return employee;
+    } catch (error) {
+      console.error("Error updating employee role:", error);
       return null;
     }
   }

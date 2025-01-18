@@ -45,7 +45,7 @@ export function TimeEntryList({ entries }: TimeEntryListProps) {
             className="max-w-sm"
           />
           <div>
-            <Button onClick={handleSubmitTimesheet} className="mr-2" style={{backgroundColor: 'rgb(254, 159, 43)'}}>Submit Biweekly Timesheet</Button>
+            <Button onClick={handleSubmitTimesheet} className="mr-2" style={{backgroundColor: 'rgb(254, 159, 43)'}}>Submit Weekly Timesheet</Button>
             <Button onClick={handlePrintTimesheet} variant="outline">Print Timesheet</Button>
           </div>
         </div>
