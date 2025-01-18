@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Department, EmployeeDepartment, User, EmployeeDepartmentRole } from '@prisma/client'
+import { EmployeeDepartment, User, EmployeeDepartmentRole } from '@prisma/client'
 import { getEmployessByDepartmentIds, removeEmployeeFromDepartment } from '@/actions/employees'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -44,7 +44,7 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
         departmentMap[employee.id]?.name?.toLowerCase().includes(search.toLowerCase())
       )
     )
-  }, [search, employees])
+  }, [search, employees, departmentMap])
 
 
 

@@ -6,7 +6,7 @@ import { TimeEntryProvider } from "@/_context/TimeEntryContext";
 import { Toaster } from "@/components/ui/toaster";
 import { getActiveTimeEntry, getUserTimeEntries } from "@/actions/time-entry";
 import { Department, TimeEntry } from "@prisma/client";
-import { getAllDepartments, getAllDepartmentsInfo, getPermittedDepartmentsInfo } from "@/actions/department";
+import { getAllDepartmentsInfo, getPermittedDepartmentsInfo } from "@/actions/department";
 
 
 

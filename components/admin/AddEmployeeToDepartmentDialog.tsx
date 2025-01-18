@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Department, User, EmployeeDepartmentRole, UserRole } from '@prisma/client';
+import { Department, User, EmployeeDepartmentRole } from '@prisma/client';
 import { addEmployeeToDepartment, removeEmployeeFromDepartment } from '@/actions/department';
 import { searchUsers } from '@/data/user';
 import { useToast } from '@/hooks/use-toast';

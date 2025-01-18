@@ -25,7 +25,7 @@ interface TimeSheetManagementProps {
 
 export default function TimeSheetManagement({ userId, employeeDepartments : _e }: TimeSheetManagementProps) {
   const { departmentMap, permittedDepartments, permittedDepartmentsMap } = useTimeEntry();
-  const [employeeDepartments, setEmployeeDepartments] = useState<EmployeeDepartment[]>(_e.filter(e => permittedDepartmentsMap[e.departmentId]));
+  const [employeeDepartments,] = useState<EmployeeDepartment[]>(_e.filter(e => permittedDepartmentsMap[e.departmentId]));
 
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
     employeeDepartments[0]?.id || ''
@@ -67,7 +67,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments : _e }
     employeeDepartments.forEach(({ departmentId }) => {
       fetchWeeklyReportForDepartment(departmentId)
     })
-  }, [currentWeek, employeeDepartments])
+  }, [currentWeek, employeeDepartments,userId])
 
   const handleApproveEntry = async (timeEntryId: string) => {
     if (!canApproveTimeEntries(selectedDepartment)) {
