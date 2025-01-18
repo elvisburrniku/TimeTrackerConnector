@@ -7,7 +7,7 @@ import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
 
 export default async function SupervisorDashboard() {
-  const user  = await currentUser();
+  const user = await currentUser();
   let departments: DepartmentViewInterface[] = [];
   let employees: EmployeeViewInterface[] = [];
 
@@ -22,7 +22,7 @@ export default async function SupervisorDashboard() {
     const employees_resp = (await getEmployessByDepartmentIds(user?.id ?? '', departments.map(department => department.id)));
     if (employees_resp && employees_resp.employees) {
       employees = employees_resp.employees;
-    }    
+    }
   }
 
 
@@ -39,7 +39,7 @@ export default async function SupervisorDashboard() {
 
       <Tabs defaultValue="departments" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="departments">Department Management</TabsTrigger>
+          <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
         </TabsList>
 

@@ -13,6 +13,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
 import { AddDepartmentDialog } from './AddDepartmentDialog'
 import DepartmentEmployeeListDialog from './DepartmentEmployeeListDialog'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
 }
@@ -121,12 +122,13 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-48">
                                                 <DropdownMenuItem onClick={() => { setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true) }}>
-                                                    <Users className="w-4 h-4 mr-2" />
+                                                    <PlusCircle className="w-4 h-4 mr-2" />
                                                     Add Employee
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    <Clock className="w-4 h-4 mr-2" />
-                                                    View Timesheets
+                                                <DropdownMenuItem onClick={() => { setSelectedDepartment(department); setIsEmployeeListDialogOpen(true) }}>
+                                                    <Users className="w-4 h-4 mr-2" />
+                                                    
+                                                    View Employees
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem>
                                                     <Edit className="w-4 h-4 mr-2" />
@@ -158,22 +160,40 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                     <div className="flex gap-2 mt-4">
                                         <Button variant={'outline'} onClick={() => { setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true) }}
                                             className='text-yellow-600' size="sm"
-                                            >
+                                        >
                                             <PlusCircle className="w-4 h-4 mr-2" />
                                             Add Employee
                                         </Button>
-                                        <Button  variant="outline" size="sm" className="text-blue-600" onClick={() => { setSelectedDepartment(department); setIsEmployeeListDialogOpen(true) }}>
+                                        <Button variant="outline" size="sm" className="text-blue-600" onClick={() => { setSelectedDepartment(department); setIsEmployeeListDialogOpen(true) }}>
                                             <Users className="w-4 h-4 mr-2" />
                                             View Employees
                                         </Button>
-                                        <Button disabled variant="outline" size="sm" className="text-orange-600" onClick={() => { }}>
-                                            <Clock className="w-4 h-4 mr-2" />
-                                            Manage Timesheets
-                                        </Button>
-                                        <Button disabled variant="outline" size="sm" className="text-green-600" onClick={() => { }}>
-                                            <Settings className="w-4 h-4 mr-2" />
-                                            Settings
-                                        </Button>
+
+                                        <TooltipProvider>
+                                            <Tooltip delayDuration={0} disableHoverableContent>                                                <TooltipTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="text-orange-600 disabled:cursor-not-allowed">
+                                                        <Clock className="w-4 h-4 mr-2" />
+                                                        Manage Timesheets
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>You can manage the timesheets from Employee Management tab</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                            <Tooltip delayDuration={0} disableHoverableContent>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="text-green-600">
+                                                        <Settings className="w-4 h-4 mr-2" />
+                                                        Settings
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>This feature is not yet available</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -210,7 +230,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
             }
             <AddDepartmentDialog isOpen={isAddDepartmentDialogOpen} onClose={() => setIsAddDepartmentDialogOpen(false)} setDepartments={
                 setDepartments} />
-            
+
         </Card>
     )
 }
