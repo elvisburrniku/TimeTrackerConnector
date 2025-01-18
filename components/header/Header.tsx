@@ -5,7 +5,6 @@ import { LoginButton } from '../auth/login-button'
 import { RegisterButton } from '../auth/register-button'
 import Link from 'next/link'
 import { UserButton } from '../auth/user-button'
-import AdminSubNavbar from './AdminSubNavbar'
 
 interface HeaderProps {
   user: ExtendedUser | null
@@ -75,7 +74,6 @@ export function Header({ user }: HeaderProps) {
           </Button>
         </div>
       </div>
-      <AdminSubNavbar />
     </header>
   )
 }

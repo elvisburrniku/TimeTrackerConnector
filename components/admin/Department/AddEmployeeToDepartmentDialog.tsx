@@ -45,7 +45,7 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
     useEffect(() => {
         debouncedSearch(search)
 
-    }, [search])
+    }, [search, debouncedSearch])
 
 
     const handleAddEmployee = async ({ employeeId, role, rate, position }: HandleAddEmployeeParams): Promise<void> => {
