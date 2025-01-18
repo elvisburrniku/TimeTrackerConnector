@@ -7,7 +7,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { getActiveTimeEntry, getUserTimeEntries } from "@/actions/time-entry";
 import { Department, TimeEntry } from "@prisma/client";
 import { getAllDepartmentsInfo, getPermittedDepartmentsInfo } from "@/actions/department";
+import localFont from "next/font/local";
 
+const geistSans = localFont({
+  src: "../fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "../fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
 
 
 interface ProtectedLayoutProps {
@@ -54,7 +65,8 @@ export default async function ProtectedLayout({
   return (
     <SessionProvider session={session}>
       <TimeEntryProvider currentEntry={currentEntry} recentEntries={recentEntries} departments={departments} permittedDepartments={permittedDepartments}>
-        <body className="antialiased bg-yellow-50">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-yellow-50`}>
+
           <Header user={user ?? null} />
           {children}
         </body>

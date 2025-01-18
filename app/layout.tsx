@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { Toaster } from "@/components/ui/toaster";
+import { Header } from "@/components/header/Header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -17,9 +18,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Next Auth Template",
-  description:
-    "Next Auth Template using the Next Auth v5 (Auth.js), Prisma and much more",
+  title: "TimeClock | Dinesh Chhantyal",
+  description: "A time tracking application by Dinesh Chhantyal",
 };
 
 
@@ -35,6 +35,8 @@ export default async function RootLayout({
 
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-yellow-50`}>
           <Toaster />
+          <Header user={session?.user ?? null} />
+
           {children}
         </body>
       </SessionProvider>
