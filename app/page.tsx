@@ -131,7 +131,7 @@ const HomePage = async () => {
                                     </CardHeader>
                                     <CardContent>
                                         <Button className="w-full" asChild>
-                                            <Link href="/admin/departments">
+                                            <Link href="/admin/dashboard?tab=departments">
                                                 Manage Departments
                                             </Link>
                                         </Button>
@@ -142,7 +142,7 @@ const HomePage = async () => {
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <UserCog className="h-5 w-5" />
-                                            User Management
+                                            Employee Management
                                         </CardTitle>
                                         <CardDescription>
                                             Manage user accounts and permissions
@@ -150,8 +150,8 @@ const HomePage = async () => {
                                     </CardHeader>
                                     <CardContent>
                                         <Button className="w-full" asChild>
-                                            <Link href="/admin/users">
-                                                Manage Users
+                                            <Link href="/admin/dashboard?tab=employees">
+                                                Manage Employees
                                             </Link>
                                         </Button>
                                     </CardContent>

@@ -6,10 +6,15 @@ import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
 
-export default async function SupervisorDashboard() {
+export default async function SupervisorDashboard({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const user = await currentUser();
   let departments: DepartmentViewInterface[] = [];
   let employees: EmployeeViewInterface[] = [];
+  const activeTab = searchParams?.tab ?? 'departments';
 
 
   if (user && user.id) {
@@ -37,7 +42,7 @@ export default async function SupervisorDashboard() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="departments" className="w-full">
+      <Tabs defaultValue={activeTab as string ?? "departments"} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
