@@ -43,29 +43,31 @@ export default function TimeSheetManagement({ userId, employeeDepartments : _e }
 
   }
 
-  const fetchWeeklyReportForDepartment = async (departmentId: string) => {
-    setLoading(true)
-    const response = await getWeeklyReport(userId, departmentId)
-    if (response.data) {
-      setEntriesByDepartment(prev => ({
-        ...prev,
-        [departmentId]: response.data
-      }))
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: response.error
-      })
-    }
-    setLoading(false)
-  }
+
 
   useEffect(() => {
+    const fetchWeeklyReportForDepartment = async (departmentId: string) => {
+      setLoading(true)
+      const response = await getWeeklyReport(userId, departmentId)
+      if (response.data) {
+        setEntriesByDepartment(prev => ({
+          ...prev,
+          [departmentId]: response.data
+        }))
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: response.error
+        })
+      }
+      setLoading(false)
+    }
+
     employeeDepartments.forEach(({ departmentId }) => {
       fetchWeeklyReportForDepartment(departmentId)
     })
-  }, [currentWeek, employeeDepartments, fetchWeeklyReportForDepartment])
+  }, [currentWeek, employeeDepartments])
 
   const handleApproveEntry = async (timeEntryId: string) => {
     if (!canApproveTimeEntries(selectedDepartment)) {
