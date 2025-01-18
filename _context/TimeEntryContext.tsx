@@ -40,6 +40,7 @@ export function TimeEntryProvider({ children,
 
   const clockIn = async (newEntry: TimeEntry) => {
     setCurrentEntry(newEntry)
+    addEntry(newEntry)
   }
 
   const clockOut = async (timeEntryId: string) => {

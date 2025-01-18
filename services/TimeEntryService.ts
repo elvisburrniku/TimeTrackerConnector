@@ -9,6 +9,11 @@ class TimeEntryService {
       const timeEntries = await db.timeEntry.findMany({
         where: { userId },
         include: { department: true },
+        orderBy: [
+          { clockOut: 'desc' },
+          { clockIn: 'desc' }
+        ],
+        take: 100
       });
       return timeEntries;
     } catch (error) {
