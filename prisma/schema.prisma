@@ -154,6 +154,7 @@ model EmployeeDepartment {
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId String
   role         EmployeeDepartmentRole       @default(EMPLOYEE)
+  position     String?
 
   @@unique([userId, departmentId])
   @@map("employee_departments")

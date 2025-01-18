@@ -6,7 +6,7 @@ import { TimeEntryProvider } from "@/_context/TimeEntryContext";
 import { Toaster } from "@/components/ui/toaster";
 import { getActiveTimeEntry, getUserTimeEntries } from "@/actions/time-entry";
 import { Department, TimeEntry } from "@prisma/client";
-import { getAllDepartments, getPermittedDepartmentsInfo } from "@/actions/department";
+import { getAllDepartments, getAllDepartmentsInfo, getPermittedDepartmentsInfo } from "@/actions/department";
 
 
 
@@ -37,7 +37,7 @@ export default async function ProtectedLayout({
         recentEntries = entries.data
     });
 
-    await getAllDepartments(user.id).then((departments_resp) => {
+    await getAllDepartmentsInfo().then((departments_resp) => {
       if (departments_resp && departments_resp.departments) {
         departments = departments_resp.departments;
       }

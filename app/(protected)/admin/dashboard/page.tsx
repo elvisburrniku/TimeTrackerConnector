@@ -47,7 +47,7 @@ export default async function SupervisorDashboard() {
           <DepartmentManagement departments={departments ?? []} />
         </TabsContent>
         <TabsContent value="employees">
-          <EmployeeManagement employees={employees} departments={departments} />
+          <EmployeeManagement employees={employees} />
         </TabsContent>
       </Tabs>
     </div>

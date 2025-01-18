@@ -15,35 +15,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible'
 import TimeSheetManagement from './TimeSheet/TimeSheetManagement'
 import ScheduleManagement from './TimeSheet/ScheduleManagement'
+import { useTimeEntry } from '@/_context/TimeEntryContext'
 
 
 
 export interface EmployeeViewInterface extends User {
-  departments: (EmployeeDepartment)[]
+  departments: EmployeeDepartment[]
 }
 
 interface EmployeeManagementProps {
   employees: EmployeeViewInterface[]
-  departments: Department[]
 }
 
-export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeManagementProps) {
+export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
   const [employees, setEmployees] = useState(_e)
-  const [departments] = useState(_d.map(dept => ({ ...dept, [dept.id]: dept })))
   const [search, setSearch] = useState('')
   const { toast } = useToast()
   const user = useCurrentUser()
   const [loading, setLoading] = useState(false)
   const [filteredEmployees, setFilteredEmployees] = useState(employees)
+  const {departments, departmentMap, permittedDepartments} = useTimeEntry();
 
   useEffect(() => {
     setFilteredEmployees(
       employees.filter(employee =>
         employee.name?.toLowerCase().includes(search.toLowerCase()) ||
-        employee.departments.some(dept => departments.find(d => d.id === dept.departmentId)?.name.toLowerCase().includes(search.toLowerCase()))
+        employee.email?.toLowerCase().includes(search.toLowerCase()) ||
+        departmentMap[employee.id]?.name?.toLowerCase().includes(search.toLowerCase())
       )
     )
-  }, [search, employees, departments])
+  }, [search, employees])
 
 
 
@@ -59,7 +60,7 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
     }
 
     setLoading(true)
-    const response = await getEmployessByDepartmentIds(user.id, departments.map(d => d.id))
+    const response = await getEmployessByDepartmentIds(user.id, permittedDepartments.map(dept => dept.id))
     if ('employees' in response) {
       setEmployees(response.employees ?? [])
     } else {

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
-import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Department, User, EmployeeDepartmentRole } from '@prisma/client';
+import { Department, User, EmployeeDepartmentRole, UserRole } from '@prisma/client';
 import { addEmployeeToDepartment, removeEmployeeFromDepartment } from '@/actions/department';
 import { searchUsers } from '@/data/user';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '../ui/separator';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { cx } from 'class-variance-authority';
 import { Badge } from '../ui/badge';
+import { Command, CommandEmpty, CommandInput } from '../ui/command';
+import { LoadingSpinner } from '../ui/loading-spinner';
+import { SearchCheckIcon, UserMinus, UserPlus } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
+import { Card, CardContent } from '../ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface AddEmployeeToDepartmentDialogProps {
     isOpen: boolean;
@@ -22,6 +25,7 @@ interface HandleAddEmployeeParams {
     employeeId: string;
     role: EmployeeDepartmentRole;
     rate: number;
+    position?: string;
 }
 
 interface UserWithDepartments extends User {
@@ -49,8 +53,11 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
     };
 
 
-    const handleAddEmployee = async ({ employeeId, role, rate }: HandleAddEmployeeParams): Promise<void> => {
-        if (!employeeId || !role || !rate) {
+
+
+
+    const handleAddEmployee = async ({ employeeId, role, rate, position }: HandleAddEmployeeParams): Promise<void> => {
+        if (!employeeId || !role || !rate || !position) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -123,133 +130,151 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
         }
     }
     return (
-        <div>
-            <Dialog open={isOpen} onOpenChange={() => onOpenChange(false)} >
-                <DialogContent>
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogPortal>
+                <DialogOverlay className="bg-background/80 backdrop-blur-sm" />
+                <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
-                        <DialogTitle>Add Employee</DialogTitle>
+                        <DialogTitle>Add Employee to {department.name}</DialogTitle>
+                        <DialogDescription>
+                            Search and add employees to this department
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="flex items-center gap-4 w-full">
-                            <div className='flex-1'>
-                                <Label htmlFor="search" className="block mb-2">Search</Label>
-                                <Input
-                                    id="search"
-                                    value={search}
-                                    onChange={(e) => {
-                                        setSearch(e.target.value);
-                                    }}
-                                    placeholder='email or name'
-                                    className="w-full"
-                                />
-                            </div>
-                            <Button onClick={() => handleSearch(search)} className='mt-5'
+
+                    <div className="space-y-4">
+                        <Command className="rounded-lg border shadow-md">
+                            <CommandInput
+                                placeholder="Search employees..."
+                                value={search}
+                                onValueChange={setSearch}
+                            />
+                            <CommandEmpty>No employees found</CommandEmpty>
+                            <Button
+                                size="sm"
+                                onClick={() => handleSearch(search)}
                                 disabled={loading}
+                                className="mx-4 my-2"
                             >
+                                {loading ? (
+                                    <LoadingSpinner/>
+                                ) : (
+                                    <SearchCheckIcon className="mr-2 h-4 w-4" />
+                                )}
                                 {loading ? 'Searching...' : 'Search'}
                             </Button>
-                        </div>
-                        {loading ? (
-                            <div className="col-span-4 text-center">Loading...</div>
-                        ) : (
-                            <div className="col-span-4">
-                                <h1
-                                    className='text-lg font-semibold py-2'
-                                >Users</h1>
-                                <Separator />
+                        </Command>
 
-                                {employees.length === 0 && <div className="text-center my-2">No employees found</div>}
-                                {employees.map((employee) => (
-                                    <div key={employee.id} className={cx("my-2 p-4 border rounded-lg shadow-sm", {
-                                        'bg-gray-100': employee.departments.some((employeeDepartment) => employeeDepartment.departmentId === department.id),
-                                        'bg-gray-200': employee.id === user?.id
-                                    })}>
-                                        <form key={employee.id} onSubmit={(e) => {
-                                            e.preventDefault();
-                                            const formData = new FormData(e.currentTarget);
-
-                                            handleAddEmployee({
-                                                employeeId: employee.id,
-                                                role: formData.get('role') as EmployeeDepartmentRole,
-                                                rate: parseFloat(formData.get('rate') as string),
-                                            });
-                                        }}>
-                                            <div className="flex justify-between items-center mb-4">
-                                                <div>
-                                                    <span className="font-medium text-lg">{employee.name}</span>
-                                                    <br />
-                                                    <span className="text-sm text-gray-500">{employee.email}</span>
-                                                </div>
-                                                <div className='flex gap-2'>
-                                                {employee.departments.length > 0 && employee.departments.map((employeeDepartment) => (
-                                                    <Badge key={employeeDepartment.id} className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-md">
-                                                        {employeeDepartment.departmentId === department.id ? 'Already in department' : 'In another department'}
-                                                    </Badge>
-                                                ))}
-
-                                                {employee.id === user?.id && (
-                                                    <Badge variant='destructive'>You</Badge>
-                                                )}
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <Label htmlFor={`role-${employee.id}`} className="block mb-1">Role</Label>
-                                                        <select
-                                                            id={`role-${employee.id}`}
-                                                            name="role"
-                                                            className="w-full p-2 border rounded-md"
-                                                        >
-                                                            {Object.values(EmployeeDepartmentRole).map((role) => (
-                                                                <option key={role} value={role}>
-                                                                    {role}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <Label htmlFor={`rate-${employee.id}`} className="block mb-1">Rate</Label>
-                                                        <Input
-                                                            id={`rate-${employee.id}`}
-                                                            name="rate"
-                                                            type="number"
-                                                            className="w-full p-2 border rounded-md"
-                                                            step="0.01"
-                                                            required
-                                                            min={0}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    
-                                                    {/* Remove from current department if exists */}
-                                                    {employee.departments.some((employeeDepartment) => employeeDepartment.departmentId === department.id) ? (
-                                                        <Button
-                                                            onClick={() =>
-                                                                handleRemoveEmployeeFromDepartment({
-                                                                    employeeId: employee.id,
-                                                                    departmentId: department.id,
-                                                                })
-                                                            }
-                                                            className="ml-4"
-                                                            variant={'destructive'}
-                                                        >
-                                                            Remove
-                                                        </Button>
-                                                    ) : <Button type="submit" className="ml-4">Add</Button>}
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <ScrollArea className="h-[400px] rounded-md border">
+                            {employees.map((employee) => (
+                                <EmployeeCard
+                                    key={employee.id}
+                                    employee={employee}
+                                    department={department}
+                                    onAdd={handleAddEmployee}
+                                    onRemove={handleRemoveEmployeeFromDepartment}
+                                />
+                            ))}
+                        </ScrollArea>
                     </div>
                 </DialogContent>
-            </Dialog>
-        </div>
-    );
-};
+            </DialogPortal>
+        </Dialog>
+    )
+}
+
+interface EmployeeCardProps {
+    employee: UserWithDepartments;
+    department: Department;
+    onAdd: (params: HandleAddEmployeeParams) => void;
+    onRemove: (params: { employeeId: string, departmentId: string }) => void;
+}
+
+// Separate Employee Card Component for better organization
+const EmployeeCard = ({
+    employee,
+    department,
+    onAdd,
+    onRemove
+}: EmployeeCardProps) => {
+const currentUser = useCurrentUser();
+
+    return (
+        <Card className="m-2">
+            <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h4 className="font-semibold">{employee.name}</h4>
+                        <p className="text-sm text-muted-foreground">{employee.email}</p>
+                    </div>
+                    <div className="flex gap-2">
+                        {employee.departments.map((dept) => (
+                            <Badge
+                                key={dept.id}
+                                variant={dept.departmentId === department.id ? "default" : "secondary"}
+                            >
+                                {dept.departmentId === department.id ? 'Current' : 'Other'}
+                            </Badge>
+                        ))}
+                        {employee.id === currentUser?.id && (
+                            <Badge variant="destructive">You</Badge>
+                        )}
+                    </div>
+                </div>
+
+                <form
+                    className="mt-4"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        const formData = new FormData(e.currentTarget)
+                        onAdd({
+                            employeeId: employee.id,
+                            role: formData.get('role') as EmployeeDepartmentRole,
+                            rate: parseFloat(formData.get('rate') as string)
+                        })
+                    }}
+                >
+                    <div className="grid grid-cols-2 gap-4">
+                        <Select name="role" defaultValue={EmployeeDepartmentRole.EMPLOYEE}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.values(EmployeeDepartmentRole).map((role) => (
+                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            name="rate"
+                            type="number"
+                            placeholder="Hourly rate"
+                            step="0.01"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="mt-4 flex justify-end">
+                        {employee.departments.some(dept => dept.departmentId === department.id) ? (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                onClick={() => onRemove({ employeeId: employee.id, departmentId: department.id })}
+                            >
+                                <UserMinus className="mr-2 h-4 w-4" />
+                                Remove
+                            </Button>
+                        ) : (
+                            <Button type="submit">
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Add to Department
+                            </Button>
+                        )}
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default AddEmployeeToDepartmentDialog;

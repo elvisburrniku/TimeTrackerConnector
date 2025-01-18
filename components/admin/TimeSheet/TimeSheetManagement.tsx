@@ -23,9 +23,10 @@ interface TimeSheetManagementProps {
   employeeDepartments: EmployeeDepartment[]
 }
 
-export default function TimeSheetManagement({ userId, employeeDepartments }: TimeSheetManagementProps) {
-  const { departmentMap, permittedDepartments } = useTimeEntry();
-  console.log(employeeDepartments)
+export default function TimeSheetManagement({ userId, employeeDepartments : _e }: TimeSheetManagementProps) {
+  const { departmentMap, permittedDepartments, permittedDepartmentsMap } = useTimeEntry();
+  const [employeeDepartments, setEmployeeDepartments] = useState<EmployeeDepartment[]>(_e.filter(e => permittedDepartmentsMap[e.departmentId]));
+
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
     employeeDepartments[0]?.id || ''
   )

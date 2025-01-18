@@ -32,7 +32,9 @@ interface ScheduleManagementProps {
     employeeDepartments: EmployeeDepartment[]
 }
 
-export default function ScheduleManagement({ userId, employeeDepartments }: ScheduleManagementProps) {
+export default function ScheduleManagement({ userId, employeeDepartments : _e }: ScheduleManagementProps) {
+    const {permittedDepartmentsMap} = useTimeEntry();
+    const [employeeDepartments, setEmployeeDepartments] = useState<EmployeeDepartment[]>(_e.filter(dept => permittedDepartmentsMap[dept.departmentId]))
     const [selectedDepartment, setSelectedDepartment] = useState(employeeDepartments[0]?.departmentId)
     const [selectedWeek, setSelectedWeek] = useState<DateRange>({
         from: startOfWeek(new Date()),
