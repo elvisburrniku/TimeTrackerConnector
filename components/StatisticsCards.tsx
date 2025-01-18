@@ -35,72 +35,72 @@ export function StatisticsCards() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="hover:shadow-lg transition-shadow bg-orange-50">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Hours This Week</CardTitle>
-          <ClockIcon className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-orange-600">Hours This Week</CardTitle>
+          <ClockIcon className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <div className="text-2xl font-bold">{weeklyHours.toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-gray-900">{weeklyHours.toFixed(1)}h</div>
             <div className="flex items-center pt-1">
-              <div className="h-2 flex rounded-full overflow-hidden bg-gray-200 w-full">
+              <div className="h-2 flex rounded-full overflow-hidden bg-orange-100 w-full">
                 <div 
-                  className="bg-green-500 transition-all duration-500"
+                  className="bg-orange-500 transition-all duration-500"
                   style={{ width: `${Math.min((weeklyHours / 40) * 100, 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-500 ml-2">{((weeklyHours / 40) * 100).toFixed(0)}%</span>
+              <span className="text-xs text-orange-600 ml-2">{((weeklyHours / 40) * 100).toFixed(0)}%</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="hover:shadow-lg transition-shadow bg-blue-50">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Overtime</CardTitle>
-          <ArrowUpIcon className={`h-4 w-4 ${overtimeHours > 0 ? 'text-orange-500' : 'text-gray-500'}`} />
+          <CardTitle className="text-sm font-medium text-blue-600">Overtime</CardTitle>
+          <ArrowUpIcon className={`h-4 w-4 ${overtimeHours > 0 ? 'text-blue-600' : 'text-gray-400'}`} />
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <div className="text-2xl font-bold">{overtimeHours.toFixed(1)}h</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-gray-900">{overtimeHours.toFixed(1)}h</div>
+            <p className="text-xs text-blue-600">
               Rate: ${overtimeRate.toFixed(2)}/hr
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="hover:shadow-lg transition-shadow bg-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Expected Pay</CardTitle>
-          <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-gray-600">Expected Pay</CardTitle>
+          <DollarSignIcon className="h-4 w-4 text-gray-600" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <div className="text-2xl font-bold">${estimatedPay.toFixed(2)}</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-gray-900">${estimatedPay.toFixed(2)}</div>
+            <div className="text-xs text-gray-500">
               Next pay date: {format(weekEnd, 'MMM dd, yyyy')}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="hover:shadow-lg transition-shadow bg-green-50">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Current Status</CardTitle>
-          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-green-600">Current Status</CardTitle>
+          <CalendarIcon className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
             <div className="text-2xl font-bold">
               {currentEntry ? (
-                <span className="text-green-500">On Duty</span>
+                <span className="text-green-600">On Duty</span>
               ) : (
                 <span className="text-gray-500">Off Duty</span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-green-600">
               {currentEntry 
                 ? `Started: ${format(new Date(currentEntry.clockIn), 'hh:mm a')}`
                 : 'Not clocked in'
