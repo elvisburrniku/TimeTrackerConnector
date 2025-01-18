@@ -17,7 +17,6 @@ import {
 } from '@/actions/time-entry'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { TimeEntryTable } from './TimeEntryTable'
-import { useCurrentUser } from '@/hooks/use-current-user'
 
 interface TimeSheetManagementProps {
   userId: string
@@ -65,7 +64,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
     employeeDepartments.forEach(({ departmentId }) => {
       fetchWeeklyReportForDepartment(departmentId)
     })
-  }, [currentWeek, employeeDepartments])
+  }, [currentWeek, employeeDepartments, fetchWeeklyReportForDepartment])
 
   const handleApproveEntry = async (timeEntryId: string) => {
     if (!canApproveTimeEntries(selectedDepartment)) {

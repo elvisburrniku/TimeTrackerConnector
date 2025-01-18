@@ -7,7 +7,19 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { createSchedule, getSchedule } from '@/actions/schedule'
-import { DepartmentSchedule, EmployeeDepartment } from '@prisma/client'
+import { EmployeeDepartment, WorkShift } from '@prisma/client'
+
+interface DepartmentSchedule {
+    id: string
+    weekStart: Date
+    weekEnd: Date
+    createdAt: Date
+    updatedAt: Date
+    departmentId: string
+    userId: string
+    createdById: string
+    schedules: WorkShift[]
+}
 import { TimeGrid } from './TimeGrid'
 import { DateRange } from 'react-day-picker'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
@@ -26,7 +38,7 @@ export default function ScheduleManagement({ userId, employeeDepartments }: Sche
         from: startOfWeek(new Date()),
         to: endOfWeek(new Date())
     })
-    const [shifts, setShifts] = useState<any[]>([])
+    const [shifts, setShifts] = useState<WorkShift[]>([])
     const { toast } = useToast()
     const [existingSchedule, setExistingSchedule] = useState<DepartmentSchedule | null>(null)
     const [loading, setLoading] = useState(false)
@@ -49,7 +61,7 @@ export default function ScheduleManagement({ userId, employeeDepartments }: Sche
             setLoading(false)
         }
         loadSchedule()
-    }, [selectedDepartment])
+    }, [selectedDepartment, userId])
 
     const handleWeekSelect = (range: DateRange | undefined) => {
         if (range?.from) {
@@ -147,7 +159,13 @@ export default function ScheduleManagement({ userId, employeeDepartments }: Sche
             <div className="col-span-8">
               <TimeGrid
                 shifts={shifts}
-                onChange={setShifts}
+                onChange={(newShifts) => {
+                  setShifts(newShifts.map(shift => ({
+                    ...shift,
+                    id: crypto.randomUUID(),
+                    scheduleId: existingSchedule?.id || ''
+                  })))
+                }}
                 disabled={loading}
                 existingSchedule={existingSchedule}
               />
