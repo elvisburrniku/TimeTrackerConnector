@@ -35,20 +35,22 @@ export function TimeEntryProvider({ children,
     setCurrentEntry(newEntry)
   }
 
-  const clockOut = async () => {
+  const clockOut = async (timeEntryId: string) => {
 
-    setCurrentEntry(null)
 
     if (currentEntry) {
       const clockOutTime = new Date()
       const clockInTime = new Date(currentEntry.clockIn)
       const hours = (clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60)
-
       const completedEntry = {
         ...currentEntry,
         clockOut: clockOutTime,
         hours: new Decimal(hours.toFixed(2)),
       }
+
+      setRecentEntries(prev => prev.map(entry => 
+        entry.id === timeEntryId ? completedEntry : entry
+      ))
       setCurrentEntry(null)
     }
   }
