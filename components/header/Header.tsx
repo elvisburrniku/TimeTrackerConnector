@@ -10,24 +10,7 @@ interface HeaderProps {
   user: ExtendedUser | null
 }
 
-const LINKS = [
-  {
-    label: 'Dashboard',
-    href: '/dashboard',
-  },
-  {
-    label: 'Timesheets',
-    href: '/timesheets',
-  },
-  {
-    label: 'Leave Requests',
-    href: '/leave-requests',
-  },
-  {
-    label: 'Reports',
-    href: '/reports',
-  },
-]
+
 
 export function Header({ user }: HeaderProps) {
   return (
@@ -40,15 +23,7 @@ export function Header({ user }: HeaderProps) {
               by Dinesh Chhantyal
             </p>
           </Link>
-          <nav className="hidden md:flex space-x-4">
-            {LINKS.map((link) => (
-
-              <Link href={link.href}  key={link.href} className='text-gray-600 hover:text-primary transition-colors duration-300 ease-in-out'>
-                {link.label}
-              </Link>
-
-            ))}
-          </nav>
+         
         </div>
         <div className="flex items-center space-x-4">
           {user ? (

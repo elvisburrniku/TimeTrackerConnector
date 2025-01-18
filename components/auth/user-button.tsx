@@ -10,10 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { ExitIcon } from "@radix-ui/react-icons";
+import { DashboardIcon, ExitIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Home } from "lucide-react";
 import { Avatar, AvatarImage } from "../ui/avatar";
+import Link from "next/link";
+
+
 
 export const UserButton = () => {
   const user = useCurrentUser();
@@ -26,21 +29,36 @@ export const UserButton = () => {
             <AvatarImage src={user?.image || "/avatar.jpg"} alt="User Avatar" />
           </Avatar>
           <span className="hidden md:inline">{user?.name || "Guest"}</span>
-            <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        {LINKS.map((link) => (
+          <DropdownMenuItem key={link.href} asChild>
+            <Link href={link.href} className="flex items-center gap-4">
+              {link.logo}
+              <span>
+                {link.label}</span>
+            </Link>
+          </DropdownMenuItem>
+        ))}
         <LogoutButton>
           <DropdownMenuItem>
-            <ExitIcon className="h-4 w-4" />
+            <ExitIcon className="h-4 w-4 mr-2" />
+            <span className="ml-2">
             Logout
+            </span>
           </DropdownMenuItem>
         </LogoutButton>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
+
+
+const LINKS = [
+  { label: "Home", href: "/", logo: <Home className="h-5 w-5" /> },
+  { label: "Dashboard", href: "/dashboard", logo: <DashboardIcon className="h-5 w-5" /> },
+];
