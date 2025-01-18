@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw } from 'lucide-react'
+import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw, PlusCircle } from 'lucide-react'
 import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
 import { Department } from '@prisma/client'
 import { deleteDepartment, getAllDepartments } from '@/actions/department'
@@ -154,6 +154,12 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                     </div>
 
                                     <div className="flex gap-2 mt-4">
+                                        <Button variant={'outline'} onClick={() => { setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true) }}
+                                            className='text-yellow-600' size="sm"
+                                            >
+                                            <PlusCircle className="w-4 h-4 mr-2" />
+                                            Add Employee
+                                        </Button>
                                         <Button variant="outline" size="sm" className="text-blue-600" onClick={() => { }}>
                                             <Users className="w-4 h-4 mr-2" />
                                             View Employees
