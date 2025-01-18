@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,12 +8,13 @@ import { searchUsers } from '@/data/user';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Badge } from '../ui/badge';
-import { Command, CommandEmpty, CommandInput } from '../ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput } from '../ui/command';
 import { LoadingSpinner } from '../ui/loading-spinner';
 import { SearchCheckIcon, UserMinus, UserPlus } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface AddEmployeeToDepartmentDialogProps {
     isOpen: boolean;
@@ -42,18 +43,32 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
     const { toast } = useToast();
     const user = useCurrentUser();
 
-    const handleSearch = async (query: string) => {
-        setLoading(true);
-        // Replace with your actual search logic
-        const response = await searchUsers(query);
-        console.log(response);
-
-        setEmployees(response ?? []);
-        setLoading(false);
-    };
 
 
+    const debouncedSearch = useDebouncedCallback(async (query: string) => {
+        if (!query.trim()) {
+            setEmployees([])
+            return
+        }
+        setLoading(true)
+        try {
+            const users = await searchUsers(query)
+            setEmployees(users || [])
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to search employees'
+            })
+        } finally {
+            setLoading(false)
+        }
+    }, 500)
 
+    useEffect(() => {
+        debouncedSearch(search)
+
+    }, [search])
 
 
     const handleAddEmployee = async ({ employeeId, role, rate, position }: HandleAddEmployeeParams): Promise<void> => {
@@ -115,7 +130,10 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
 
             if (updatedDepartment.success) {
 
-                setEmployees(employees.filter((employee) => employee.id !== employeeId && employee.departments.some((employeeDepartment) => employeeDepartment.departmentId !== departmentId)))
+                setEmployees(employees.filter((employee) => 
+                    employee.id !== employeeId || 
+                    !employee.departments.some((employeeDepartment) => employeeDepartment.departmentId === departmentId)
+                ))
                 toast({
                     title: 'Success',
                     description: updatedDepartment.success
@@ -131,53 +149,58 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
     }
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogPortal>
-                <DialogOverlay className="bg-background/80 backdrop-blur-sm" />
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle>Add Employee to {department.name}</DialogTitle>
-                        <DialogDescription>
-                            Search and add employees to this department
-                        </DialogDescription>
-                    </DialogHeader>
+            <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                    <DialogTitle>Add Employee to {department.name}</DialogTitle>
+                    <DialogDescription>
+                        Search employees by name or email
+                    </DialogDescription>
+                </DialogHeader>
 
-                    <div className="space-y-4">
-                        <Command className="rounded-lg border shadow-md">
-                            <CommandInput
-                                placeholder="Search employees..."
-                                value={search}
-                                onValueChange={setSearch}
-                            />
-                            <CommandEmpty>No employees found</CommandEmpty>
-                            <Button
-                                size="sm"
-                                onClick={() => handleSearch(search)}
-                                disabled={loading}
-                                className="mx-4 my-2"
-                            >
-                                {loading ? (
-                                    <LoadingSpinner/>
-                                ) : (
-                                    <SearchCheckIcon className="mr-2 h-4 w-4" />
-                                )}
-                                {loading ? 'Searching...' : 'Search'}
-                            </Button>
-                        </Command>
-
-                        <ScrollArea className="h-[400px] rounded-md border">
-                            {employees.map((employee) => (
-                                <EmployeeCard
-                                    key={employee.id}
-                                    employee={employee}
-                                    department={department}
-                                    onAdd={handleAddEmployee}
-                                    onRemove={handleRemoveEmployeeFromDepartment}
-                                />
-                            ))}
-                        </ScrollArea>
+                <div className="space-y-4">
+                    <div className="relative">
+                        <Input
+                            placeholder="Search employees..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full"
+                        />
+                        {loading && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                <LoadingSpinner />
+                            </div>
+                        )}
                     </div>
-                </DialogContent>
-            </DialogPortal>
+
+                    {search && (
+                        <ScrollArea className="h-[400px] rounded-md border">
+                            {employees.length === 0 ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                    No employees found
+                                </div>
+                            ) : (
+                                <div className="p-2">
+                                    {employees.map((employee) => (
+                                        <EmployeeCard
+                                            key={employee.id}
+                                            employee={employee}
+                                            department={department}
+                                            onAdd={handleAddEmployee}
+                                            onRemove={handleRemoveEmployeeFromDepartment}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </ScrollArea>
+                    )}
+
+                    {!search && (
+                        <div className="py-6 text-center text-sm text-muted-foreground">
+                            Enter a name or email to search
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
         </Dialog>
     )
 }
@@ -196,7 +219,7 @@ const EmployeeCard = ({
     onAdd,
     onRemove
 }: EmployeeCardProps) => {
-const currentUser = useCurrentUser();
+    const currentUser = useCurrentUser();
 
     return (
         <Card className="m-2">
@@ -212,7 +235,7 @@ const currentUser = useCurrentUser();
                                 key={dept.id}
                                 variant={dept.departmentId === department.id ? "default" : "secondary"}
                             >
-                                {dept.departmentId === department.id ? 'Current' : 'Other'}
+                                {dept.departmentId === department.id ? 'Employee' : 'Other Department'}
                             </Badge>
                         ))}
                         {employee.id === currentUser?.id && (
@@ -221,57 +244,84 @@ const currentUser = useCurrentUser();
                     </div>
                 </div>
 
-                <form
-                    className="mt-4"
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        const formData = new FormData(e.currentTarget)
-                        onAdd({
-                            employeeId: employee.id,
-                            role: formData.get('role') as EmployeeDepartmentRole,
-                            rate: parseFloat(formData.get('rate') as string)
-                        })
-                    }}
-                >
-                    <div className="grid grid-cols-2 gap-4">
-                        <Select name="role" defaultValue={EmployeeDepartmentRole.EMPLOYEE}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Object.values(EmployeeDepartmentRole).map((role) => (
-                                    <SelectItem key={role} value={role}>{role}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Input
-                            name="rate"
-                            type="number"
-                            placeholder="Hourly rate"
-                            step="0.01"
-                            min="0"
-                            required
-                        />
-                    </div>
-
-                    <div className="mt-4 flex justify-end">
-                        {employee.departments.some(dept => dept.departmentId === department.id) ? (
+                <div className="mt-4 space-y-6">
+                    {employee.departments.some(dept => dept.departmentId === department.id) ? (
+                        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-4">
+                            <div className="text-sm text-muted-foreground">
+                                Already a member of this department
+                            </div>
                             <Button
                                 type="button"
                                 variant="destructive"
+                                size="sm"
                                 onClick={() => onRemove({ employeeId: employee.id, departmentId: department.id })}
                             >
                                 <UserMinus className="mr-2 h-4 w-4" />
                                 Remove
                             </Button>
-                        ) : (
-                            <Button type="submit">
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                Add to Department
-                            </Button>
-                        )}
-                    </div>
-                </form>
+                        </div>
+                    ) : (
+                        <form
+                            className="space-y-4"
+                            onSubmit={(e) => {
+                                e.preventDefault()
+                                const formData = new FormData(e.currentTarget)
+                                onAdd({
+                                    employeeId: employee.id,
+                                    role: formData.get('role') as EmployeeDepartmentRole,
+                                    rate: parseFloat(formData.get('rate') as string),
+                                    position: formData.get('position') as string
+                                })
+                            }}
+                        >
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Role</label>
+                                    <Select name="role" defaultValue={EmployeeDepartmentRole.EMPLOYEE}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.values(EmployeeDepartmentRole).map((role) => (
+                                                <SelectItem key={role} value={role}>
+                                                    {role.charAt(0) + role.slice(1).toLowerCase()}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Position</label>
+                                    <Input
+                                        name="position"
+                                        placeholder="e.g., Senior Developer"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2 sm:col-span-2">
+                                    <label className="text-sm font-medium">Hourly Rate ($)</label>
+                                    <Input
+                                        name="rate"
+                                        type="number"
+                                        placeholder="0.00"
+                                        step="0.01"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-2">
+                                <Button type="submit" className="w-full sm:w-auto">
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    Add to Department
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </div>
             </CardContent>
         </Card>
     )
