@@ -1,82 +1,140 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { format } from 'date-fns'
+import { format, startOfWeek } from 'date-fns'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Badge } from '@/components/ui/badge'
 
 export function TimeEntryList() {
   const { recentEntries, departmentMap } = useTimeEntry()
-
   const [search, setSearch] = useState('')
 
-  const filteredEntries = recentEntries.filter(entry => 
-    entry.createdAt.toISOString().includes(search) || 
-    entry.status.toLowerCase().includes(search.toLowerCase()) ||
-    entry.departmentId.toLowerCase().includes(search.toLowerCase())
-  )
+  // Group entries by week
+  const weeklyData = useMemo(() => {
+    const weeks: { [key: string]: typeof recentEntries } = {}
+    
+    recentEntries.forEach(entry => {
+      const weekStart = startOfWeek(new Date(entry.clockIn))
+      const weekKey = format(weekStart, 'yyyy-MM-dd')
+      
+      if (!weeks[weekKey]) {
+        weeks[weekKey] = []
+      }
+      weeks[weekKey].push(entry)
+    })
 
-  const handleSubmitTimesheet = () => {
-    // Logic to submit timesheet
-    console.log('Submitting timesheet')
-  }
+    return weeks
+  }, [recentEntries])
 
-  const handlePrintTimesheet = () => {
-    // Logic to print timesheet
-    window.print()
-  }
+  // Prepare chart data
+  const chartData = useMemo(() => {
+    return Object.entries(weeklyData).map(([week, entries]) => {
+      const totalHours = entries.reduce((acc, entry) => acc + Number(entry.hours), 0)
+      return {
+        week: format(new Date(week), 'MMM d'),
+        hours: totalHours,
+        overtime: Math.max(0, totalHours - 40),
+        regular: Math.min(totalHours, 40)
+      }
+    })
+  }, [weeklyData])
+
+  const filteredEntries = useMemo(() => {
+    return recentEntries.filter(entry => 
+      entry.createdAt.toISOString().includes(search) || 
+      entry.status.toLowerCase().includes(search.toLowerCase()) ||
+      departmentMap[entry.departmentId]?.name.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [recentEntries, search, departmentMap])
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Recent Time Entries</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4 flex justify-between">
-          <Input 
-            placeholder="Search by date, status, or department" 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-          />
-          <div>
-            <Button onClick={handleSubmitTimesheet} className="mr-2" style={{backgroundColor: 'rgb(254, 159, 43)'}}>Submit Weekly Timesheet</Button>
-            <Button onClick={handlePrintTimesheet} variant="outline">Print Timesheet</Button>
+        <div className="flex justify-between items-center">
+          <CardTitle>Time Entries</CardTitle>
+          <div className="space-x-2">
+            <Button onClick={() => {}} className="bg-orange-500 hover:bg-orange-600">
+              Submit Weekly
+            </Button>
+            <Button onClick={() => window.print()} variant="outline">
+              Print
+            </Button>
           </div>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Clock In</TableHead>
-              <TableHead>Clock Out</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredEntries.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell>{entry.createdAt.toISOString().split('T')[0]}</TableCell>
-                <TableCell>{departmentMap[entry.departmentId]?.name}</TableCell>
-                <TableCell>{format(new Date(entry.clockIn), 'yyyy-MM-dd HH:mm:ss')}</TableCell>
-                <TableCell>{entry.clockOut ? format(new Date(entry.clockOut), 'yyyy-MM-dd HH:mm:ss') : 'N/A'}</TableCell>
-                <TableCell>{Number(entry.hours).toFixed(2)}</TableCell>
-                <TableCell>{entry.status}</TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm">Edit</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="table" className="w-full">
+          <TabsList className="grid w-[200px] grid-cols-2 mb-4">
+            <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="graph">Graph View</TabsTrigger>
+          </TabsList>
+
+          <div className="mb-4">
+            <Input 
+              placeholder="Search entries..." 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+
+          <TabsContent value="table" className="w-full">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Clock In</TableHead>
+                  <TableHead>Clock Out</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEntries.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>{format(new Date(entry.clockIn), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{departmentMap[entry.departmentId]?.name}</TableCell>
+                    <TableCell>{format(new Date(entry.clockIn), 'hh:mm a')}</TableCell>
+                    <TableCell>
+                      {entry.clockOut ? format(new Date(entry.clockOut), 'hh:mm a') : '-'}
+                    </TableCell>
+                    <TableCell>{Number(entry.hours).toFixed(2)}h</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        entry.status === 'PENDING' ? 'default' :
+                        entry.status === 'APPROVED' ? 'secondary' : 'destructive'
+                      }>
+                        {entry.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TabsContent>
+
+          <TabsContent value="graph" className="w-full">
+            <div className="h-[400px] mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="regular" stackId="a" fill="#10B981" name="Regular Hours" />
+                  <Bar dataKey="overtime" stackId="a" fill="#F97316" name="Overtime Hours" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )
 }
-

@@ -10,7 +10,7 @@ class TimeEntryService {
         where: { userId },
         include: { department: true },
         orderBy: [
-          { clockOut: 'desc' },
+          { clockOut: { sort: 'desc', nulls: 'first' } },
           { clockIn: 'desc' }
         ],
         take: 100

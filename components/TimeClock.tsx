@@ -10,18 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 import { clockIn as _clockIn, clockOut as _clockOut } from '@/actions/time-entry';
 import { useSpring, animated } from '@react-spring/web';
 import { differenceInSeconds, format } from 'date-fns';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface TimeClockProps {
   departments: Department[];
 }
 
 export function TimeClock({ departments }: TimeClockProps) {
-  const { currentEntry, clockIn, clockOut } = useTimeEntry();
+  const { currentEntry, clockIn, clockOut, loading, setLoading } = useTimeEntry();
   const { data: user } = useSession();
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(departments.length > 0 ? departments[0] : null);
   const [time, setTime] = useState<string>('00:00:00');
-
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (currentEntry) {
@@ -35,52 +35,57 @@ export function TimeClock({ departments }: TimeClockProps) {
   }, [currentEntry]);
 
   const handleClockInOut = async () => {
-    if (currentEntry) {
-      if (!user || !user.user || !user.user.id) {
-        console.error('User must be logged in to clock out');
-        return;
+    setLoading(true);
+    try {
+      if (currentEntry) {
+        if (!user || !user.user || !user.user.id) {
+          console.error('User must be logged in to clock out');
+          return;
+        }
+
+        const response = await _clockOut(user.user.id, currentEntry.id);
+
+        if (response.error) {
+          toast({
+            title: 'Error',
+            description: response.error,
+          });
+          return;
+        } else if (response.data && response.success) {
+          toast({
+            title: 'Success',
+            description: response.success,
+          });
+
+          clockOut(currentEntry.id);
+        }
+      } else {
+        if (!selectedDepartment) return;
+
+        if (!user || !user.user || !user.user.id) {
+          console.error('User must be logged in to clock in');
+          return;
+        }
+
+        const response = await _clockIn(user.user.id, selectedDepartment.id);
+
+        if (response.error) {
+          toast({
+            title: 'Error',
+            description: response.error,
+          });
+          return;
+        } else if (response.data && response.success) {
+          toast({
+            title: 'Success',
+            description: response.success,
+          });
+
+          clockIn(response.data);
+        }
       }
-
-      const response = await _clockOut(user.user.id, currentEntry.id);
-
-      if (response.error) {
-        toast({
-          title: 'Error',
-          description: response.error,
-        });
-        return;
-      } else if (response.data && response.success) {
-        toast({
-          title: 'Success',
-          description: response.success,
-        });
-
-        clockOut(currentEntry.id);
-      }
-    } else {
-      if (!selectedDepartment) return;
-
-      if (!user || !user.user || !user.user.id) {
-        console.error('User must be logged in to clock in');
-        return;
-      }
-
-      const response = await _clockIn(user.user.id, selectedDepartment.id);
-
-      if (response.error) {
-        toast({
-          title: 'Error',
-          description: response.error,
-        });
-        return;
-      } else if (response.data && response.success) {
-        toast({
-          title: 'Success',
-          description: response.success,
-        });
-
-        clockIn(response.data);
-      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,6 +129,7 @@ export function TimeClock({ departments }: TimeClockProps) {
                   <Select 
                     value={selectedDepartment?.id} 
                     onValueChange={(id) => setSelectedDepartment(departments.find(dept => dept.id === id) || null)}
+                    disabled={loading}
                   >
                     <SelectTrigger className="w-full h-12 text-lg bg-gray-50 border-2 hover:bg-gray-100 transition-colors">
                       <SelectValue placeholder="Select your department" />
@@ -186,9 +192,14 @@ export function TimeClock({ departments }: TimeClockProps) {
                   ? 'bg-red-500 hover:bg-red-600 text-white' 
                   : 'bg-orange-500 hover:bg-orange-600 text-white'
               }`}
-              disabled={!currentEntry && !selectedDepartment}
+              disabled={loading || (!currentEntry && !selectedDepartment)}
             >
-              {currentEntry ? 'End Shift (Clock Out)' : 'Start Shift (Clock In)'}
+              <div className="flex items-center justify-center space-x-2">
+                {loading && <LoadingSpinner />}
+                <span>
+                  {currentEntry ? 'End Shift (Clock Out)' : 'Start Shift (Clock In)'}
+                </span>
+              </div>
             </Button>
           </div>
         </div>
