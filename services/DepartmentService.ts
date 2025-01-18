@@ -96,7 +96,7 @@ class DepartmentService {
     }
   }
 
-  async addEmployeeToDepartment(userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole, rate: number, position: string): Promise<DepartmentViewInterface | null> {
+  async addEmployeeToDepartment(userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole, rate: number, position?: string): Promise<DepartmentViewInterface | null> {
     const user = await db.user.findUnique({ where: { id: userId } });
     const userDeparmentRole = await db.employeeDepartment.findFirst({
       where: {
