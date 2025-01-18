@@ -28,7 +28,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments : _e }
   const [employeeDepartments,] = useState<EmployeeDepartment[]>(_e.filter(e => permittedDepartmentsMap[e.departmentId]));
 
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
-    employeeDepartments[0]?.id || ''
+    employeeDepartments[0]?.departmentId  ?? ''
   )
   const [entriesByDepartment, setEntriesByDepartment] = useState<Record<string, TimeEntry[]>>({})
   const [loading, setLoading] = useState(true)
