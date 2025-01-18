@@ -232,7 +232,7 @@ class DepartmentService {
     }
   }
 
-  async getUserPermittedDepartments(userId: string): Promise<DepartmentViewInterface[] | null> {
+  async getEmployessByDepartmentIds(userId: string): Promise<DepartmentViewInterface[] | null> {
     const role = await currentRole();
 
     if (role === UserRole.ADMIN) {
@@ -275,6 +275,10 @@ class DepartmentService {
       const departments = await db.employeeDepartment.findMany({
         where: {
           userId,
+          OR: [
+            { role: EmployeeDepartmentRole.MANAGER },
+            { role: EmployeeDepartmentRole.ADMIN },
+          ],
         },
       });
 
@@ -289,7 +293,42 @@ class DepartmentService {
       console.error("Error getting permitted departments:", error);
       return null;
     }
+  }
 
+  async getUserPermittedDepartments(userId: string): Promise<DepartmentViewInterface[] | null> {
+    const role = await currentRole();
+
+    if (role === UserRole.ADMIN) {
+      return this.getAllDepartments();
+    }
+
+    try {
+      const departments = await db.employeeDepartment.findMany({
+        where: {
+          userId,
+          OR: [
+            { role: EmployeeDepartmentRole.MANAGER },
+            { role: EmployeeDepartmentRole.ADMIN },
+          ],
+        },
+      });
+
+      const depertmentsInfo = await db.department.findMany({
+        where: {
+          id: { in: departments.map((dep) => dep.departmentId) },
+        },
+      }) as DepartmentViewInterface[];
+
+      for (const department of depertmentsInfo) {
+        department.employeeCount = await this.getTotalEmployeeCount(department.id);
+        department.totalCost = await this.getEmployeeCost(department.id);
+      }
+
+      return depertmentsInfo
+    } catch (error) {
+      console.error("Error getting permitted departments:", error);
+      return null;
+    }
   }
 
   async updateEmployeeRole(userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole): Promise<EmployeeDepartment | null> {

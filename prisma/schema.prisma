@@ -236,6 +236,7 @@ enum EmployeeDepartmentRole {
 }
 
 enum TimeEntryStatus {
+  NOTSUBMITTED
   PENDING
   APPROVED
   REJECTED

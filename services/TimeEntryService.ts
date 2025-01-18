@@ -53,7 +53,7 @@ class TimeEntryService {
           userId,
           departmentId,
           clockIn: new Date(),
-          status: TimeEntryStatus.PENDING,
+          status: TimeEntryStatus.NOTSUBMITTED,
           hours: new Decimal(0),
         },
       });

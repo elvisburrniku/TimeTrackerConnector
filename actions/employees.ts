@@ -32,6 +32,7 @@ export const updateEmployeeRole = async (userId: string, departmentId: string, e
 };
 
 export const getEmployessByDepartmentIds = async (userId: string, departmentIds: string[]) => {
+
     const employees = await employeeService.getEmployeesByDepartmentIds(userId, departmentIds);
     if (employees) {
         return { success: "Employees retrieved successfully!", employees };

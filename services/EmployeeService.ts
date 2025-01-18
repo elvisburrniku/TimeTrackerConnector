@@ -52,20 +52,9 @@ class EmployeeService {
     }
 
     async getEmployeesByDepartmentIds(userId: string, departmentIds: string[]): Promise<EmployeeViewInterface[] | null> {
-        const user = await db.user.findUnique({ where: { id: userId } });
-        const userDepartmentRole = await db.employeeDepartment.findFirst({
-            where: {
-                userId,
-            },
-        });
-
-        if (!user || (user.role !== UserRole.ADMIN && userDepartmentRole?.role !== EmployeeDepartmentRole.MANAGER)) {
-            console.error("Permission denied: Only ADMIN or MANAGER can view employees of a department.");
-            return null;
-        }
 
         try {
-            
+
             const employees_res = await db.user.findMany({
                 where: {
                     departments: {
@@ -80,7 +69,7 @@ class EmployeeService {
                     departments: true,
                 },
             });
-            
+
 
             return employees_res;
         } catch (error) {
