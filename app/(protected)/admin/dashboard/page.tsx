@@ -6,7 +6,6 @@ import DepartmentManagement, { DepartmentViewInterface } from '@/components/admi
 import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
-import { User } from '@prisma/client'
 
 export default async function SupervisorDashboard() {
   const user  = await currentUser();

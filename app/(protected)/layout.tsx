@@ -1,4 +1,4 @@
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { currentUser } from "@/lib/auth";
 import { Header } from "@/components/header/Header";

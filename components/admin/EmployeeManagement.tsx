@@ -4,11 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Department, EmployeeDepartment, User, EmployeeDepartmentRole } from '@prisma/client'
-import { addEmployeeToDepartment, getEmployessByDepartmentIds, removeEmployeeFromDepartment, updateEmployeeRole } from '@/actions/employees'
+import {  getEmployessByDepartmentIds, removeEmployeeFromDepartment } from '@/actions/employees'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ReloadIcon } from '@radix-ui/react-icons'
@@ -17,7 +15,7 @@ import { Separator } from '../ui/separator'
 
 
 export interface EmployeeViewInterface extends User {
-  departments: (EmployeeDepartment & { hourlyRate: number })[]
+  departments: (EmployeeDepartment)[]
 }
 
 interface EmployeeManagementProps {
@@ -29,7 +27,6 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
   const [employees, setEmployees] = useState(_e)
   const [departments] = useState(_d.map(dept => ({ ...dept, [dept.id]: dept })))
   const [search, setSearch] = useState('')
-  const [newEmployee, setNewEmployee] = useState({ name: '', department: '', pay: '' })
   const { toast } = useToast()
   const user = useCurrentUser()
   const [loading, setLoading] = useState(false)
@@ -38,25 +35,7 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
     employee.departments.some(dept => departments.find(d => d.id === dept.departmentId)?.name.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const handleAddEmployee = async () => {
-    if (!newEmployee.name || !newEmployee.department || !newEmployee.pay) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Please fill all fields',
-      })
-      return
-    }
-
-    if (!user || !user.id) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'You must be logged in to add an employee',
-      })
-      return
-    }
-  }
+ 
 
   const reloadEmployee = async () => {
     if (!user || !user.id) {
@@ -117,6 +96,8 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
         description: 'You must be logged in to update an employee',
       })
     }
+
+    console.log(employeeId, departmentId, pay, role)
   }
 
   console.log(employees)
@@ -191,7 +172,7 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
                         </SelectContent>
                       </Select>
                       <Input
-                        value={dept.hourlyRate}
+                        value={Number(dept.hourlyRate).toString()}
                         onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
                         className="w-24"
                       />

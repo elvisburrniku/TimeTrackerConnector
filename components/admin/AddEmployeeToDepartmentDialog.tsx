@@ -114,7 +114,7 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
                     description: updatedDepartment.success
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 variant: 'destructive',
                 title: 'Error',

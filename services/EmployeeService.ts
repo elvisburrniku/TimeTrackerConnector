@@ -81,19 +81,8 @@ class EmployeeService {
                 },
             });
             
-            const employees = employees_res.map((employee) => {
-                return {
-                    ...employee,
-                    departments: employee.departments.map((department) => {
-                        return {
-                            ...department,
-                            hourlyRate: department.hourlyRate.toNumber(),
-                        };
-                    }),
-                };
-            });
 
-            return employees;
+            return employees_res;
         } catch (error) {
             console.error("Error fetching employee by department:", error);
             return null;
