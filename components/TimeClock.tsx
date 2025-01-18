@@ -90,7 +90,7 @@ export function TimeClock({ departments }: TimeClockProps) {
     const hours = Math.floor(diffInSeconds / 3600);
     const minutes = Math.floor((diffInSeconds % 3600) / 60);
     const seconds = diffInSeconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')} hours, ${minutes.toString().padStart(2, '0')} minutes, ${seconds.toString().padStart(2, '0')} seconds`;
   };
 
   const springProps = useSpring({
@@ -135,61 +135,12 @@ export function TimeClock({ departments }: TimeClockProps) {
           <p className="text-2xl font-semibold">{currentEntry ? 'Clocked In' : 'Clocked Out'}</p>
           {currentEntry && (
             <animated.div style={springProps} className="clock-container">
-              <div className="clock">
-                <div className="clock-face">
-                  <div className="hand hour-hand" style={{ transform: `rotate(${(new Date().getHours() % 12) * 30}deg)` }}></div>
-                  <div className="hand minute-hand" style={{ transform: `rotate(${new Date().getMinutes() * 6}deg)` }}></div>
-                  <div className="hand second-hand" style={{ transform: `rotate(${new Date().getSeconds() * 6}deg)` }}></div>
-                </div>
-              </div>
               <p>Department: {departments.find(dept => dept.id === currentEntry.departmentId)?.name}</p>
               <p>Today's worked hours: {time}</p>
             </animated.div>
           )}
         </div>
       </CardContent>
-      <style jsx>{`
-        .clock-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        .clock {
-          position: relative;
-          width: 150px;
-          height: 150px;
-          border: 5px solid #333;
-          border-radius: 50%;
-          margin-bottom: 20px;
-        }
-        .clock-face {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          transform: translateY(-3px);
-        }
-        .hand {
-          position: absolute;
-          width: 50%;
-          height: 6px;
-          background: #333;
-          top: 50%;
-          transform-origin: 100%;
-          transform: rotate(90deg);
-          transition: all 0.05s;
-          transition-timing-function: cubic-bezier(0.1, 2.7, 0.58, 1);
-        }
-        .hour-hand {
-          height: 8px;
-        }
-        .minute-hand {
-          height: 6px;
-        }
-        .second-hand {
-          height: 4px;
-          background: red;
-        }
-      `}</style>
     </Card>
   );
 }

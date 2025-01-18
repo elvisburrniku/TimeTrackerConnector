@@ -49,7 +49,6 @@ export function TimeEntryProvider({ children,
         clockOut: clockOutTime,
         hours: new Decimal(hours.toFixed(2)),
       }
-      setRecentEntries([completedEntry, ...recentEntries])
       setCurrentEntry(null)
     }
   }
