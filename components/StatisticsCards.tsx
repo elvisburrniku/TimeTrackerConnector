@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeEntry } from '@/_context/TimeEntryContext';
 import { startOfWeek, endOfWeek, differenceInSeconds, format } from 'date-fns';
-import { ArrowUpIcon, ArrowDownIcon, ClockIcon, DollarSignIcon, CalendarIcon } from 'lucide-react';
+import { ArrowUpIcon, ClockIcon, DollarSignIcon, CalendarIcon } from 'lucide-react';
 
 export function StatisticsCards() {
   const { recentEntries, currentEntry } = useTimeEntry();

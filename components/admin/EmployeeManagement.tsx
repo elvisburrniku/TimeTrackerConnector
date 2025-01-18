@@ -1,7 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -10,7 +9,10 @@ import {  getEmployessByDepartmentIds, removeEmployeeFromDepartment } from '@/ac
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ReloadIcon } from '@radix-ui/react-icons'
-import { Separator } from '../ui/separator'
+import { ChevronDown } from 'lucide-react'
+import { Badge } from '../ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible'
 
 
 
@@ -30,10 +32,16 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
   const { toast } = useToast()
   const user = useCurrentUser()
   const [loading, setLoading] = useState(false)
-  const filteredEmployees = employees.filter(employee =>
-    employee.name?.toLowerCase().includes(search.toLowerCase()) ||
-    employee.departments.some(dept => departments.find(d => d.id === dept.departmentId)?.name.toLowerCase().includes(search.toLowerCase()))
-  )
+  const [filteredEmployees, setFilteredEmployees] = useState(employees)
+
+  useEffect(() => {
+    setFilteredEmployees(
+      employees.filter(employee =>
+        employee.name?.toLowerCase().includes(search.toLowerCase()) ||
+        employee.departments.some(dept => departments.find(d => d.id === dept.departmentId)?.name.toLowerCase().includes(search.toLowerCase()))
+      )
+    )
+  }, [search, employees, departments])
 
  
 
@@ -100,116 +108,141 @@ export function EmployeeManagement({ employees: _e, departments: _d }: EmployeeM
     console.log(employeeId, departmentId, pay, role)
   }
 
-  console.log(employees)
-  console.log(departments)
+  console.log(filteredEmployees)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Employee Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4 flex justify-between">
-          <Input
-            placeholder="Search employees"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-          />
-          <Button onClick={reloadEmployee} variant={'outline'} disabled={loading}>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Employee Management</CardTitle>
+              <CardDescription>Manage employees across departments</CardDescription>
+            </div>
+            <div className="flex space-x-2">
+              <Button onClick={reloadEmployee} variant="outline" disabled={loading}>
+                {loading ? 'Reloading...' : 
+                
+                (<><ReloadIcon/>Refresh </>)}
+              </Button>
+              <Button>Add Employee</Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Search and Filters */}
+            <div className="flex items-center justify-between gap-4">
+              <Input
+                placeholder="Search by name, email, or department..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-md"
+              />
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+  
+            {/* Employee List */}
             {loading ? (
-              <>
-                <ReloadIcon />
-                {' Reloading...'}
-              </>
+              <div className="text-center py-8">Loading employees...</div>
             ) : (
-              <>
-                <ReloadIcon />
-                {' Reload Employees'}
-              </>
-            )}
-          </Button>
-
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Role($Pay)</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading && (
-              <TableRow>
-                <TableCell colSpan={4}>Loading...</TableCell>
-              </TableRow>
-            )}
-
-            {filteredEmployees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell>
-                  <div>{employee.name}</div>
-                  <div
-                    className='text-gray-500 text-xs'
-                  >{employee.email}</div>
-                </TableCell>
-                <TableCell>{employee.departments.map(dept => departments.find(d => d.id === dept.departmentId)?.name).join(', ')}</TableCell>
-                <TableCell>
-                  {employee.departments.map(dept => (
-                    <div key={dept.departmentId} className="mb-2 flex flex-col">
-                      <Select
-                        value={dept.role}
-                      >
-                        <SelectTrigger>
-                          <SelectValue>{dept.role}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(EmployeeDepartmentRole).map(role => (
-                            <SelectItem key={role} value={role}>{role}</SelectItem>
+              filteredEmployees.map((employee) => (
+                <Collapsible key={employee.id} className="border rounded-lg">
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center justify-between p-4 hover:bg-slate-50">
+                      <div className="flex items-center space-x-4">
+                        <div>
+                          <h3 className="font-medium">{employee.name}</h3>
+                          <p className="text-sm text-muted-foreground">{employee.email}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          {employee.departments.map(dept => (
+                            <Badge key={dept.departmentId} variant="secondary">
+                              {departments.find(d => d.id === dept.departmentId)?.name}
+                            </Badge>
                           ))}
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        value={Number(dept.hourlyRate).toString()}
-                        onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
-                        className="w-24"
-                      />
+                        </div>
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
                     </div>
-                  ))}
-                </TableCell>
-                <TableCell className='flex flex-col space-y-2'>
-                  {employee.departments.map(dept => (
-                    <div key={dept.departmentId} className="mb-2 flex flex-col space-y-2">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveEmployee(employee.id, dept.departmentId)}
-                      >
-                        Remove from {departments.find(d => d.id === dept.departmentId)?.name}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)}
-                      >
-                        Update Role at {departments.find(d => d.id === dept.departmentId)?.name}
-                      </Button>
-
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="p-4 border-t">
+                      <Tabs defaultValue="departments">
+                        <TabsList className="mb-4">
+                          <TabsTrigger value="departments">Departments & Roles</TabsTrigger>
+                          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                          <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+                        </TabsList>
+  
+                        <TabsContent value="departments">
+                          {employee.departments.map(dept => (
+                            <div key={dept.departmentId} className="mb-4 p-4 bg-slate-50 rounded-lg">
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-medium">{departments.find(d => d.id === dept.departmentId)?.name}</h4>
+                                <Button variant="destructive" size="sm" onClick={() => handleRemoveEmployee(employee.id, dept.departmentId)}>
+                                  Remove
+                                </Button>
+                              </div>
+  
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="text-sm font-medium">Role</label>
+                                  <Select value={dept.role} onValueChange={(value) => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), value as EmployeeDepartmentRole)}>
+                                    <SelectTrigger>
+                                      <SelectValue>{dept.role}</SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.values(EmployeeDepartmentRole).map(role => (
+                                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+  
+                                <div>
+                                  <label className="text-sm font-medium">Hourly Rate</label>
+                                  <Input
+                                    type="number"
+                                    value={Number(dept.hourlyRate)}
+                                    onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </TabsContent>
+  
+                        <TabsContent value="schedule">
+                          <div className="p-4 bg-slate-50 rounded-lg">
+                            <h4 className="font-medium mb-4">Weekly Schedule</h4>
+                            {/* Schedule component here */}
+                          </div>
+                        </TabsContent>
+  
+                        <TabsContent value="timesheet">
+                          <div className="p-4 bg-slate-50 rounded-lg">
+                            <h4 className="font-medium mb-4">Recent Timesheets</h4>
+                            {/* Timesheet component here */}
+                          </div>
+                        </TabsContent>
+                      </Tabs>
                     </div>
-                  ))}
-                  <Separator />
-                  <div className='flex space-x-2 mt-2'>
-                    <Button>View Schedule</Button>
-                    <Button>View Weekly Timesheet</Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
   )
 }

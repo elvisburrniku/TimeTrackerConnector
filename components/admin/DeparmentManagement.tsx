@@ -1,18 +1,17 @@
 'use client'
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle,  } from '@/components/ui/dialog'
-import {  deleteDepartment,  getAllDepartments } from '@/actions/department'
-import { Department } from '@prisma/client'
-import { useCurrentUser } from '@/hooks/use-current-user'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw } from 'lucide-react'
 import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
-import { AddDepartmentDialog } from './AddDepartmentDialog'
+import { Department } from '@prisma/client'
+import { deleteDepartment, getAllDepartments } from '@/actions/department'
 import { useToast } from '@/hooks/use-toast'
-import { ReloadIcon } from '@radix-ui/react-icons'
-
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { AddDepartmentDialog } from './AddDepartmentDialog'
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
 }
@@ -28,7 +27,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     const { toast } = useToast()
     const user = useCurrentUser()
 
-   
+
     const filteredDepartments = departments.filter(department =>
         department.name.toLowerCase().includes(search.toLowerCase())
     )
@@ -38,7 +37,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
             toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add a department' })
             return
         }
-    
+
         setLoading(true)
         const updatedDepartments = await getAllDepartments(user.id);
         setDepartments(updatedDepartments.departments ?? [])
@@ -71,64 +70,108 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
 
 
     return (
-        <Card>
+        <Card className="w-full">
             <CardHeader>
-                <CardTitle>Department Management</CardTitle>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle className="text-2xl">Department Management</CardTitle>
+                        <CardDescription>Manage your organization&apos;s departments and employees</CardDescription>
+                    </div>
+                    <Button onClick={() => setIsAddDepartmentDialogOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Department
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
-                <div className="mb-4 flex justify-between">
+                <div className="mb-6 flex items-center justify-between">
                     <Input
-                        placeholder="Search departments"
+                        placeholder="Search departments..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="max-w-sm"
                     />
-                    <div className='flex gap-4'>
-                    <Button onClick={reloadDepartments} variant={'outline'}><ReloadIcon /></Button>
-                    <Button onClick={() => setIsAddDepartmentDialogOpen(true)}>Add Department</Button>
-                    <AddDepartmentDialog
-                        isOpen={isAddDepartmentDialogOpen}
-                        setDepartments={setDepartments}
-                        onClose={() => setIsAddDepartmentDialogOpen(false)}
-                    />
-                    </div>
+                    <Button variant="outline" onClick={reloadDepartments}>
+                        <RefreshCcw className="w-4 h-4 mr-2" />
+                        Refresh
+                    </Button>
                 </div>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Total Employees</TableHead>
-                            <TableHead>Budget</TableHead>
-                            <TableHead>Other Info</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {
-                        loading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className='text-center'>Loading...</TableCell>
-                            </TableRow>
-                        ) :
-                        filteredDepartments.length === 0 ? (
-                            <TableRow className=''>
-                                <TableCell colSpan={5} className="text-center pt-4">No departments found</TableCell>
-                            </TableRow>
-                        ) :
+
+                <div className="grid gap-6">
+                    {loading ? (
+                        <div className="text-center py-8">Loading departments...</div>
+                    ) : filteredDepartments.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">No departments found</div>
+                    ) : (
                         filteredDepartments.map((department) => (
-                            <TableRow key={department.id}>
-                                <TableCell>{department.name}</TableCell>
-                                <TableCell>{department.employeeCount}</TableCell>
-                                <TableCell>${department.totalCost.toString()}</TableCell>
-                                <TableCell>{department.info}</TableCell>
-                                <TableCell className='flex gap-4'>
-                                    <Button size="sm" onClick={() => {setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true)}}>Add Employee</Button>
-                                    <Button variant="destructive" size="sm" onClick={() => { setSelectedDepartment(department); setIsRemoveDialogOpen(true); }}>Delete</Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                            <Card key={department.id} className="hover:shadow-md transition-shadow">
+                                <CardContent className="pt-6">
+                                    <div className="flex items-start justify-between">
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-semibold">{department.name}</h3>
+                                            <p className="text-sm text-muted-foreground">{department.info}</p>
+                                        </div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
+                                                <DropdownMenuItem onClick={() => { setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true) }}>
+                                                    <Users className="w-4 h-4 mr-2" />
+                                                    Add Employee
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <Clock className="w-4 h-4 mr-2" />
+                                                    View Timesheets
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <Edit className="w-4 h-4 mr-2" />
+                                                    Edit Department
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="text-red-600" onClick={() => { setSelectedDepartment(department); setIsRemoveDialogOpen(true); }}>
+                                                    <Trash className="w-4 h-4 mr-2" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4 mt-4">
+                                        <div className="p-4 bg-orange-50 rounded-lg">
+                                            <p className="text-sm text-orange-600 mb-1">Employees</p>
+                                            <p className="text-2xl font-bold">{department.employeeCount}</p>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-600 mb-1">Budget</p>
+                                            <p className="text-2xl font-bold">${department.totalCost.toString()}</p>
+                                        </div>
+                                        <div className="p-4 bg-green-50 rounded-lg">
+                                            <p className="text-sm text-green-600 mb-1">Active Projects</p>
+                                            <p className="text-2xl font-bold">3</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 mt-4">
+                                        <Button variant="outline" size="sm" className="text-blue-600" onClick={() => { }}>
+                                            <Users className="w-4 h-4 mr-2" />
+                                            View Employees
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-orange-600" onClick={() => { }}>
+                                            <Clock className="w-4 h-4 mr-2" />
+                                            Manage Timesheets
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-green-600" onClick={() => { }}>
+                                            <Settings className="w-4 h-4 mr-2" />
+                                            Settings
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
             </CardContent>
             {selectedDepartment && (
                 <Dialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
@@ -152,6 +195,9 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                 }
                 } />
             )}
+
+            <AddDepartmentDialog isOpen={isAddDepartmentDialogOpen} onClose={() => setIsAddDepartmentDialogOpen(false)} setDepartments={
+                setDepartments} />
         </Card>
     )
 }
