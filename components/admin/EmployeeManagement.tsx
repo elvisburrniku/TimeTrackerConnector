@@ -127,7 +127,6 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
 
                 (<><ReloadIcon />Refresh </>)}
             </Button>
-            <Button>Add Employee</Button>
           </div>
         </div>
       </CardHeader>
