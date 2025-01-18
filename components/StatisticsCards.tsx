@@ -1,11 +1,11 @@
+import { useTimeEntry } from '@/_context/TimeEntryContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TimeEntry } from '@prisma/client';
 
 interface CardProps {
-  entries: TimeEntry[];
 }
 
 export function StatisticsCards({}: CardProps) {
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>

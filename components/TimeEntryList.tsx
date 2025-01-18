@@ -7,15 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TimeEntry } from '@prisma/client'
 import { format } from 'date-fns'
+import { useTimeEntry } from '@/_context/TimeEntryContext'
 
 interface TimeEntryListProps {
-  entries: TimeEntry[]
 }
 
-export function TimeEntryList({ entries }: TimeEntryListProps) {
+export function TimeEntryList({  }: TimeEntryListProps) {
+  const { recentEntries } = useTimeEntry()
+
   const [search, setSearch] = useState('')
 
-  const filteredEntries = entries.filter(entry => 
+  const filteredEntries = recentEntries.filter(entry => 
     entry.createdAt.toISOString().includes(search) || 
     entry.status.toLowerCase().includes(search.toLowerCase()) ||
     entry.departmentId.toLowerCase().includes(search.toLowerCase())
@@ -69,7 +71,7 @@ export function TimeEntryList({ entries }: TimeEntryListProps) {
 
                 <TableCell>{format(new Date(entry.clockIn), 'yyyy-MM-dd HH:mm:ss')}</TableCell>
                 <TableCell>{entry.clockOut ? format(new Date(entry.clockOut), 'yyyy-MM-dd HH:mm:ss') : 'N/A'}</TableCell>
-                <TableCell>{entry.hours.toFixed(2)}</TableCell>
+                <TableCell>{Number(entry.hours).toFixed(2)}</TableCell>
                 <TableCell>{entry.status}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm">Edit</Button>

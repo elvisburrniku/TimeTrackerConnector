@@ -2,8 +2,6 @@
 
 import { timeEntryService } from "@/services/TimeEntryService";
 
-
-
 export const getUserTimeEntries = async (userId: string) => {
   const data = await timeEntryService.getUserTimeEntries(userId);
   if (data) {

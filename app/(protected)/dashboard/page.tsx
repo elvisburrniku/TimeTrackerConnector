@@ -1,4 +1,4 @@
-'use client'
+"use server";
 
 import { TimeClock } from '@/components/TimeClock'
 import { Calendar } from '@/components/Calendar'
@@ -6,15 +6,29 @@ import { TimeEntryList } from '@/components/TimeEntryList'
 import { StatisticsCards } from '@/components/StatisticsCards'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useTimeEntry } from '@/_context/TimeEntryContext'
+import { getPermittedDepartmentsInfo } from '@/actions/department'
+import { currentUser } from '@/lib/auth'
+import { Department } from '@prisma/client'
 
-function Dashboard() {
-  const { recentEntries } = useTimeEntry()
+async function Dashboard() {
+  const user = await currentUser();
+  let departments: Department[] = [];
+
+  if (user && user.id) {
+    try {
+      const data = await getPermittedDepartmentsInfo(user.id);
+
+      if (data && data.departments)
+        departments = data.departments;
+    } catch (error) {
+      console.error('Failed to fetch permitted departments:', error);
+    }
+  }
 
   return (
     <div className="space-y-6 my-6 container mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <TimeClock />
+        <TimeClock departments={departments}/>
         <Calendar />
         <Card>
           <CardHeader>
@@ -30,12 +44,10 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <StatisticsCards entries={recentEntries} />
-      <TimeEntryList entries={recentEntries} />
+      <StatisticsCards />
+      <TimeEntryList />
     </div>
   )
 }
-
-
 
 export default Dashboard

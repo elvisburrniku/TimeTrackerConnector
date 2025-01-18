@@ -264,6 +264,34 @@ class DepartmentService {
     }
   }
 
+  async getUserPermittedDepartmentsInfo(userId: string): Promise<Department[] | null> {
+    const role = await currentRole();
+
+    if (role === UserRole.ADMIN) {
+      return db.department.findMany();
+    }
+
+    try {
+      const departments = await db.employeeDepartment.findMany({
+        where: {
+          userId,
+        },
+      });
+
+      const depertmentsInfo = await db.department.findMany({
+        where: {
+          id: { in: departments.map((dep) => dep.departmentId) },
+        },
+      });
+
+      return depertmentsInfo
+    } catch (error) {
+      console.error("Error getting permitted departments:", error);
+      return null;
+    }
+
+  }
+
   async updateEmployeeRole(userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole): Promise<EmployeeDepartment | null> {
     const user = await db.user.findUnique({ where: { id: userId } });
     const userDeparmentRole = await db.employeeDepartment.findFirst({
@@ -292,6 +320,16 @@ class DepartmentService {
       return employee;
     } catch (error) {
       console.error("Error updating employee role:", error);
+      return null;
+    }
+  }
+
+  async getAllDepartmentsInfo(): Promise<Department[] | null> {
+    try {
+      const departments = await db.department.findMany();
+      return departments;
+    } catch (error) {
+      console.error("Error getting all departments:", error);
       return null;
     }
   }

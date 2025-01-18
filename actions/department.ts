@@ -51,3 +51,23 @@ export const getAllDepartments = async (userId: string) => {
   }
 }
 
+export const getPermittedDepartmentsInfo = async (userId: string) => {
+  if (!userId){
+    return { error: "User ID is required." };
+  }
+  const departments = await departmentService.getUserPermittedDepartmentsInfo(userId);
+  if (departments) {
+    return { departments:departments, success: "Departments retrieved successfully!" };
+  } else {
+    return { error: "Failed to get departments." };
+  }
+}
+
+export const getAllDepartmentsInfo = async () => {
+  const departments = await departmentService.getAllDepartmentsInfo();
+  if (departments) {
+    return { departments:departments, success: "Departments retrieved successfully!" };
+  } else {
+    return { error: "Failed to get departments." };
+  }
+}

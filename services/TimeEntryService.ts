@@ -1,5 +1,3 @@
-"use server";
-
 import { db } from "@/lib/db";
 import { TimeEntry, TimeEntryStatus, UserRole, EmployeeDepartmentRole } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -239,6 +237,10 @@ class TimeEntryService {
           clockOut: null,
         },
       });
+
+      // const formttedTimeEntry = {
+      //   ...timeEntry,
+      //  hours: timeEntry?.hours
 
       return timeEntry;
     } catch (error) {

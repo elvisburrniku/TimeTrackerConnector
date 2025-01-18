@@ -12,6 +12,7 @@ export default async function SupervisorDashboard() {
   const user  = await currentUser();
   let departments: DepartmentViewInterface[] = [];
   let employees: EmployeeViewInterface[] = [];
+  
 
 
   if (user && user.id) {

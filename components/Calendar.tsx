@@ -92,7 +92,8 @@ export function Calendar() {
   const getHoursWorked = (day: number) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0]
     const entries = recentEntries.filter(entry => entry.clockIn.toISOString().split('T')[0] === date)
-    return entries.reduce((total, entry) => total + entry.hours.toNumber(), 0)
+    console.log(entries)
+    return entries.reduce((total, entry) => total + Number(entry.hours), 0)
   }
 
   return (
