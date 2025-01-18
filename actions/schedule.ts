@@ -49,3 +49,4 @@ export async function getSchedule(userId: string, departmentId: string) {
     return { error: 'Failed to fetch schedule' }
   }
 }
+

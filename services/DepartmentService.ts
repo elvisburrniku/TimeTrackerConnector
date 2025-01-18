@@ -442,6 +442,28 @@ class DepartmentService {
     }
   }
 
+  async getEmployeePermittedDepartmentsInfo(userId: string): Promise<Department[] | null> {
+    const role = await currentRole();
+
+    try {
+      const departments = await db.employeeDepartment.findMany({
+        where: {
+          userId,
+        },
+      });
+
+      const depertmentsInfo = await db.department.findMany({
+        where: {
+          id: { in: departments.map((dep) => dep.departmentId) },
+        },
+      });
+
+      return depertmentsInfo
+    } catch (error) {
+      console.error("Error getting permitted departments:", error);
+      return null;
+    }
+  }
 }
 
 export const departmentService = new DepartmentService();

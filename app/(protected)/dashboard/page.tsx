@@ -4,7 +4,7 @@ import { TimeClock } from '@/components/TimeClock'
 import { Calendar } from '@/components/Calendar'
 import { TimeEntryList } from '@/components/TimeEntryList'
 import { StatisticsCards } from '@/components/StatisticsCards'
-import { getPermittedDepartmentsInfo } from '@/actions/department'
+import { getEmployeePermittedDepartmentsInfo } from '@/actions/department'
 import { currentUser } from '@/lib/auth'
 import { Department } from '@prisma/client'
 
@@ -14,7 +14,7 @@ async function Dashboard() {
 
   if (user && user.id) {
     try {
-      const data = await getPermittedDepartmentsInfo(user.id);
+      const data = await getEmployeePermittedDepartmentsInfo(user.id, user.id);
 
       if (data && data.departments)
         departments = data.departments;

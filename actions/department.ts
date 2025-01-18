@@ -99,3 +99,16 @@ export const getDepartmentEmployees = async (userId: string, departmentId: strin
     return { error: "Failed to get employees." };
   }
 }
+
+export const getEmployeePermittedDepartmentsInfo = async (userId: string, employeeId: string) => {
+  if (!userId){
+    return { error: "User ID is required." };
+  }
+
+  const departments = await departmentService.getEmployeePermittedDepartmentsInfo(employeeId);
+  if (departments) {
+    return { departments:departments, success: "Departments retrieved successfully!" };
+  } else {
+    return { error: "Failed to get departments." };
+  }
+}

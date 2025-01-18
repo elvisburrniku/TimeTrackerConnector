@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button'
 import { UserRole } from '@prisma/client'
 import Link from 'next/link'
 import { Clock, Users, Calendar, Settings, BarChart, UserCog } from 'lucide-react'
-import { getPermittedDepartmentsInfo } from '@/actions/department'
+import { getEmployeePermittedDepartmentsInfo, getPermittedDepartmentsInfo } from '@/actions/department'
 import { TimeClock } from '@/components/TimeClock'
+import { getWeeklyStats } from '@/actions/work-stats'
+import { format } from 'date-fns'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 const HomePage = async () => {
     const user = await currentUser()
@@ -38,8 +41,18 @@ const HomePage = async () => {
             </div>
         )
     }
+
     if (!user.id) throw new Error("User ID is required");
-    const permittedDepartments = await getPermittedDepartmentsInfo(user.id);
+
+    const [employeePermittedDepartments, permittedDepartments, weeklyStats] = await Promise.all([
+        getEmployeePermittedDepartmentsInfo(user.id, user.id),
+        getPermittedDepartmentsInfo(user.id),
+        getWeeklyStats(user.id)
+    ]);
+
+    console.log(employeePermittedDepartments, permittedDepartments, weeklyStats);
+
+    const stats = weeklyStats.data
     const isAdmin = user.role === UserRole.ADMIN || (permittedDepartments.departments ?? []).length != 0;
 
     return (
@@ -66,18 +79,53 @@ const HomePage = async () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="bg-orange-50 rounded-lg p-4">
                                 <p className="text-orange-600 text-sm font-medium">Total Hours</p>
-                                <p className="text-2xl font-bold text-gray-900">32.5h</p>
-                                <p className="text-sm text-gray-600">This week</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? (
+                                        `${stats.weeklyHours.toFixed(1)}h`
+                                    ) : (
+                                        <LoadingSpinner />
+                                    )}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm text-gray-600">This week</p>
+                                    {stats?.overtimeHours && stats.overtimeHours > 0 && (
+                                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
+                                            +{stats.overtimeHours.toFixed(1)}h OT
+                                        </span>
+                                    )}
+                                </div>
                             </div>
+
                             <div className="bg-green-50 rounded-lg p-4">
-                                <p className="text-green-600 text-sm font-medium">Last Clock In</p>
-                                <p className="text-2xl font-bold text-gray-900">9:00 AM</p>
-                                <p className="text-sm text-gray-600">Today</p>
+                                <p className="text-green-600 text-sm font-medium">Current Status</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats?.currentEntry ? (
+                                        <span className="text-green-600">On Duty</span>
+                                    ) : (
+                                        <span className="text-gray-500">Off Duty</span>
+                                    )}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    {stats?.lastClockIn ? (
+                                        `Last: ${format(new Date(stats.lastClockIn), 'hh:mm a')}`
+                                    ) : (
+                                        'No recent activity'
+                                    )}
+                                </p>
                             </div>
+
                             <div className="bg-blue-50 rounded-lg p-4">
-                                <p className="text-blue-600 text-sm font-medium">Departments</p>
-                                <p className="text-2xl font-bold text-gray-900">{permittedDepartments.departments?.length || 0}</p>
-                                <p className="text-sm text-gray-600">Active</p>
+                                <p className="text-blue-600 text-sm font-medium">Expected Pay</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {stats ? (
+                                        `$${stats.expectedPay.toFixed(2)}`
+                                    ) : (
+                                        <LoadingSpinner />
+                                    )}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    From {employeePermittedDepartments.departments?.length || 0} departments
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -85,7 +133,7 @@ const HomePage = async () => {
                     {/* Quick Actions Grid */}
                     <div className="grid gap-6 md:grid-cols-3">
                         <div className="md:col-span-2 md:row-span-2">
-                            <TimeClock departments={permittedDepartments.departments ?? []} />
+                            <TimeClock departments={employeePermittedDepartments.departments ?? []} />
                         </div>
 
                         <Card className="group hover:shadow-lg transition-all duration-200 hover:scale-[1.02] bg-white flex flex-col justify-between">
