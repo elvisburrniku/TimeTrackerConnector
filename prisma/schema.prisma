@@ -161,7 +161,7 @@ model TimeEntry {
   id         String    @id @default(cuid())
   clockIn    DateTime
   clockOut   DateTime?
-  status     Status    @default(PENDING)
+  status     TimeEntryStatus    @default(PENDING)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   approvedAt DateTime?
@@ -185,7 +185,7 @@ model TimeOffRequest {
   startDate   DateTime  @db.Date
   endDate     DateTime  @db.Date
   requestType String // vacation, sick, personal
-  status      Status    @default(PENDING)
+  status      TimeEntryStatus    @default(PENDING)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   approvedAt  DateTime?
@@ -235,7 +235,7 @@ enum EmployeeDepartmentRole {
   ADMIN
 }
 
-enum Status {
+enum TimeEntryStatus {
   PENDING
   APPROVED
   REJECTED

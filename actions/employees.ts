@@ -1,7 +1,7 @@
 "use server";
 
 import { departmentService } from "@/services/DepartmentService";
-import { employeeService } from "@/services/EmployeeSerice";
+import { employeeService } from "@/services/EmployeeService";
 import { EmployeeDepartmentRole } from "@prisma/client";
 
 export const addEmployeeToDepartment = async (userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole, rate: number) => {
