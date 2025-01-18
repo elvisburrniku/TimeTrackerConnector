@@ -67,7 +67,7 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
             return;
         }
 
-        const response = await addEmployeeToDepartment(user.id, department.id, employeeId, role, rate);
+        const response = await addEmployeeToDepartment(user.id, department.id, employeeId, role, rate, position);
         if ('success' in response) {
             toast({
                 title: 'Success',

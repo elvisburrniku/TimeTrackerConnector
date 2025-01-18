@@ -131,7 +131,7 @@ export default function DepartmentEmployeeListDialog({
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
-                                    <TableHead>Role</TableHead>
+                                    <TableHead>Position(Role)</TableHead>
                                     <TableHead>Rate</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
@@ -156,7 +156,7 @@ export default function DepartmentEmployeeListDialog({
                                             <TableCell>{employee.employee.email}</TableCell>
                                             <TableCell>
                                                 <Badge variant="outline">
-                                                    {employee.role}
+                                                    {employee.position}({employee.role})
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>${Number(employee.hourlyRate)}/hr</TableCell>

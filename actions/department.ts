@@ -21,8 +21,8 @@ export const deleteDepartment = async (userId: string, id: string) => {
   }
 };
 
-export const addEmployeeToDepartment = async (userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole, rate: number) => {
-  const department = await departmentService.addEmployeeToDepartment(userId, departmentId, employeeId, role, rate);
+export const addEmployeeToDepartment = async (userId: string, departmentId: string, employeeId: string, role: EmployeeDepartmentRole, rate: number, position?: string) => {
+  const department = await departmentService.addEmployeeToDepartment(userId, departmentId, employeeId, role, rate, position);
   if (department) {
     return { success: "Employee added to department successfully!", department };
   } else {
