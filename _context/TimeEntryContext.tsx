@@ -14,6 +14,7 @@ type TimeEntryContextType = {
   departmentMap: { [key: string]: Department }
   loading: boolean
   setLoading: (loading: boolean) => void
+  permittedDepartments: Department[]
 }
 
 const TimeEntryContext = createContext<TimeEntryContextType | undefined>(undefined)
@@ -21,10 +22,11 @@ const TimeEntryContext = createContext<TimeEntryContextType | undefined>(undefin
 export function TimeEntryProvider({ children,
   currentEntry: currentEntryProp,
   recentEntries: recentEntriesProp,
-  departments: departmentsProp
+  departments: departmentsProp,
+  permittedDepartments: permittedDepartmentsProp
 }: {
     children: React.ReactNode,
-
+    permittedDepartments: Department[],
     currentEntry: TimeEntry | null,
     recentEntries: TimeEntry[],
     departments: Department[]
@@ -34,6 +36,7 @@ export function TimeEntryProvider({ children,
   const [departments, setDepartments] = useState<Department[]>(departmentsProp)
   const [departmentMap, setDepartmentMap] = useState<{ [key: string]: Department }>({})
   const [loading, setLoading] = useState(false)
+  const [permittedDepartments, setPermittedDepartments] = useState<Department[]>(permittedDepartmentsProp)
 
   useEffect(() => {
     setLoading(true)
@@ -75,7 +78,7 @@ export function TimeEntryProvider({ children,
   }
 
   return (
-    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut, addEntry, loading, setLoading, departments, departmentMap }}>
+    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut, addEntry, permittedDepartments, loading, setLoading, departments, departmentMap }}>
       {children}
     </TimeEntryContext.Provider>
   )

@@ -6,17 +6,19 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, set } from 'date-fns'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Department, EmployeeDepartment, EmployeeDepartmentRole, TimeEntry, TimeEntryStatus } from '@prisma/client'
-import { 
-  getWeeklyReport, 
-  approveTimeEntry, 
-  discardTimeEntry, 
-  approveAllWeeklyTimeEntries 
+import {
+  getWeeklyReport,
+  approveTimeEntry,
+  discardTimeEntry,
+  approveAllWeeklyTimeEntries
 } from '@/actions/time-entry'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { TimeEntryTable } from './TimeEntryTable'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { getPermittedDepartmentsInfo } from '@/actions/department'
 
 interface TimeSheetManagementProps {
   userId: string
@@ -24,20 +26,23 @@ interface TimeSheetManagementProps {
 }
 
 export default function TimeSheetManagement({ userId, employeeDepartments }: TimeSheetManagementProps) {
-  const {departmentMap} = useTimeEntry();
+  const { departmentMap, permittedDepartments } = useTimeEntry();
   console.log(employeeDepartments)
-  const [selectedDepartment, setSelectedDepartment] = useState<string>( 
+  const [selectedDepartment, setSelectedDepartment] = useState<string>(
     employeeDepartments[0]?.id || ''
   )
   const [entriesByDepartment, setEntriesByDepartment] = useState<Record<string, TimeEntry[]>>({})
   const [loading, setLoading] = useState(true)
   const [currentWeek, setCurrentWeek] = useState(new Date())
+  
   const { toast } = useToast()
+  const user = useCurrentUser()
+
 
   const canApproveTimeEntries = (departmentId: string) => {
-    const userRole = employeeDepartments.find(d => d.id === departmentId)?.role
-    console.log(userRole)
-    return userRole === EmployeeDepartmentRole.ADMIN || userRole === EmployeeDepartmentRole.MANAGER
+   
+    return permittedDepartments.some(department => department.id === departmentId)
+
   }
 
   const fetchWeeklyReportForDepartment = async (departmentId: string) => {
@@ -73,10 +78,10 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
       })
       return
     }
-  
+
     setLoading(true)
     const response = await approveTimeEntry(userId, timeEntryId)
-    
+
     if (response.data) {
       setEntriesByDepartment(prev => ({
         ...prev,
@@ -86,7 +91,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
             : entry
         )
       }))
-      
+
       toast({
         title: 'Success',
         description: response.success
@@ -100,7 +105,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
     }
     setLoading(false)
   }
-  
+
   const handleDiscardEntry = async (timeEntryId: string) => {
     if (!canApproveTimeEntries(selectedDepartment)) {
       toast({
@@ -110,10 +115,10 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
       })
       return
     }
-  
+
     setLoading(true)
     const response = await discardTimeEntry(userId, timeEntryId)
-    
+
     if (response.data) {
       setEntriesByDepartment(prev => ({
         ...prev,
@@ -123,7 +128,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
             : entry
         )
       }))
-      
+
       toast({
         title: 'Success',
         description: response.success
@@ -137,7 +142,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
     }
     setLoading(false)
   }
-  
+
   const handleApproveAll = async (departmentId: string) => {
     if (!canApproveTimeEntries(departmentId)) {
       toast({
@@ -147,10 +152,10 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
       })
       return
     }
-  
+
     setLoading(true)
     const response = await approveAllWeeklyTimeEntries(userId, departmentId)
-    
+
     if (response.data) {
       setEntriesByDepartment(prev => ({
         ...prev,
@@ -159,7 +164,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
           status: TimeEntryStatus.APPROVED
         }))
       }))
-      
+
       toast({
         title: 'Success',
         description: response.success
@@ -184,13 +189,13 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
               Week of {format(startOfWeek(currentWeek), 'MMM d')} - {format(endOfWeek(currentWeek), 'MMM d, yyyy')}
             </CardDescription>
           </div>
-          <WeekNavigation 
-            currentWeek={currentWeek} 
-            setCurrentWeek={setCurrentWeek} 
+          <WeekNavigation
+            currentWeek={currentWeek}
+            setCurrentWeek={setCurrentWeek}
           />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent> 
         <Tabs defaultValue={selectedDepartment} onValueChange={setSelectedDepartment}>
           <TabsList className="mb-4">
             {employeeDepartments.map(({ departmentId, role, hourlyRate }) => (
@@ -205,20 +210,20 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
             ))}
           </TabsList>
 
-            {employeeDepartments.map(({ departmentId, role }) => (
+          {employeeDepartments.map(({ departmentId, role }) => (
             <TabsContent key={departmentId} value={departmentId}>
               <DepartmentTimesheet
-              entries={entriesByDepartment[departmentId] || []}
-              loading={loading}
-              canApprove={canApproveTimeEntries(departmentId)}
-              department={departmentMap[departmentId]}
-              role={role}
-              onApprove={handleApproveEntry}
-              onDiscard={handleDiscardEntry}
-              onApproveAll={handleApproveAll}
+                entries={entriesByDepartment[departmentId] || []}
+                loading={loading}
+                canApprove={canApproveTimeEntries(departmentId)}
+                department={departmentMap[departmentId]}
+                role={role}
+                onApprove={handleApproveEntry}
+                onDiscard={handleDiscardEntry}
+                onApproveAll={handleApproveAll}
               />
             </TabsContent>
-            ))}
+          ))}
         </Tabs>
       </CardContent>
     </Card>
@@ -226,9 +231,9 @@ export default function TimeSheetManagement({ userId, employeeDepartments }: Tim
 }
 
 // Separate components for better organization
-function WeekNavigation({ currentWeek, setCurrentWeek }: { 
+function WeekNavigation({ currentWeek, setCurrentWeek }: {
   currentWeek: Date
-  setCurrentWeek: (date: Date) => void 
+  setCurrentWeek: (date: Date) => void
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -243,9 +248,9 @@ function WeekNavigation({ currentWeek, setCurrentWeek }: {
   )
 }
 
-function DepartmentTimesheet({ 
-  entries, 
-  loading, 
+function DepartmentTimesheet({
+  entries,
+  loading,
   canApprove,
   department,
   role,
@@ -277,8 +282,8 @@ function DepartmentTimesheet({
           </Badge>
         </div>
         {canApprove && (
-          <Button 
-            onClick={() => onApproveAll(department.id)} 
+          <Button
+            onClick={() => onApproveAll(department.id)}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -287,7 +292,7 @@ function DepartmentTimesheet({
         )}
       </div>
 
-      <TimeEntryTable 
+      <TimeEntryTable
         entries={entries}
         loading={loading}
         canApprove={canApprove}

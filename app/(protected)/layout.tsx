@@ -6,7 +6,7 @@ import { TimeEntryProvider } from "@/_context/TimeEntryContext";
 import { Toaster } from "@/components/ui/toaster";
 import { getActiveTimeEntry, getUserTimeEntries } from "@/actions/time-entry";
 import { Department, TimeEntry } from "@prisma/client";
-import { getAllDepartments } from "@/actions/department";
+import { getAllDepartments, getPermittedDepartmentsInfo } from "@/actions/department";
 
 
 
@@ -22,6 +22,7 @@ export default async function ProtectedLayout({
   let currentEntry = null;
   let recentEntries: TimeEntry[] = [];
   let departments: Department[] = [];
+  let permittedDepartments: Department[] = [];
 
 
   if (user && user.id) {
@@ -40,20 +41,26 @@ export default async function ProtectedLayout({
       if (departments_resp && departments_resp.departments) {
         departments = departments_resp.departments;
       }
+    });
+
+    await getPermittedDepartmentsInfo(user.id).then((data) => {
+      if (data && data.departments) {
+        permittedDepartments = data.departments;
+      }
     }
     );
   }
 
   return (
-      <SessionProvider session={session}>
-        <TimeEntryProvider currentEntry={currentEntry} recentEntries={recentEntries} departments={departments}>
-          <body className="antialiased bg-yellow-50">
-            <Header user={user ?? null} />
-            {children}
-          </body>
-          <Toaster />
-        </TimeEntryProvider>
+    <SessionProvider session={session}>
+      <TimeEntryProvider currentEntry={currentEntry} recentEntries={recentEntries} departments={departments} permittedDepartments={permittedDepartments}>
+        <body className="antialiased bg-yellow-50">
+          <Header user={user ?? null} />
+          {children}
+        </body>
+        <Toaster />
+      </TimeEntryProvider>
 
-      </SessionProvider>
-    );
-  }
+    </SessionProvider>
+  );
+}
