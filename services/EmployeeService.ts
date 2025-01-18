@@ -1,4 +1,4 @@
-import { EmployeeViewInterface } from "@/components/admin/EmployeeManagement";
+import { EmployeeViewInterface } from "@/components/admin/Employee/EmployeeManagement";
 import { db } from "@/lib/db";
 import { EmployeeDepartmentRole, UserRole, User } from "@prisma/client";
 

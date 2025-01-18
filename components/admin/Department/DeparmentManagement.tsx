@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw, PlusCircle } from 'lucide-react'
-import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
 import { Department } from '@prisma/client'
 import { deleteDepartment, getAllDepartments } from '@/actions/department'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
 import { AddDepartmentDialog } from './AddDepartmentDialog'
+import DepartmentEmployeeListDialog from './DepartmentEmployeeListDialog'
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
 }
@@ -24,6 +25,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
     const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false)
     const [isAddDepartmentDialogOpen, setIsAddDepartmentDialogOpen] = useState(false)
+    const [isEmployeeListDialogOpen, setIsEmployeeListDialogOpen] = useState(false)
     const { toast } = useToast()
     const user = useCurrentUser()
 
@@ -160,15 +162,15 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                             <PlusCircle className="w-4 h-4 mr-2" />
                                             Add Employee
                                         </Button>
-                                        <Button variant="outline" size="sm" className="text-blue-600" onClick={() => { }}>
+                                        <Button  variant="outline" size="sm" className="text-blue-600" onClick={() => { setIsEmployeeListDialogOpen(true) }}>
                                             <Users className="w-4 h-4 mr-2" />
                                             View Employees
                                         </Button>
-                                        <Button variant="outline" size="sm" className="text-orange-600" onClick={() => { }}>
+                                        <Button disabled variant="outline" size="sm" className="text-orange-600" onClick={() => { }}>
                                             <Clock className="w-4 h-4 mr-2" />
                                             Manage Timesheets
                                         </Button>
-                                        <Button variant="outline" size="sm" className="text-green-600" onClick={() => { }}>
+                                        <Button disabled variant="outline" size="sm" className="text-green-600" onClick={() => { }}>
                                             <Settings className="w-4 h-4 mr-2" />
                                             Settings
                                         </Button>
@@ -201,9 +203,14 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                 }
                 } />
             )}
-
+            {
+                selectedDepartment && (
+                    <DepartmentEmployeeListDialog department={selectedDepartment} isOpen={isEmployeeListDialogOpen} onOpenChange={val => setIsEmployeeListDialogOpen(val)} />
+                )
+            }
             <AddDepartmentDialog isOpen={isAddDepartmentDialogOpen} onClose={() => setIsAddDepartmentDialogOpen(false)} setDepartments={
                 setDepartments} />
+            
         </Card>
     )
 }

@@ -1,4 +1,5 @@
-import { DepartmentViewInterface } from "@/components/admin/DeparmentManagement";
+import { DepartmentViewInterface } from "@/components/admin/Department/DeparmentManagement";
+import { EmployeeDepartmentWithUser } from "@/components/admin/Department/DepartmentEmployeeListDialog";
 import { currentRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Department, EmployeeDepartment, EmployeeDepartmentRole, UserRole } from "@prisma/client";
@@ -34,6 +35,19 @@ class DepartmentService {
       return department;
     } catch (error) {
       console.error("Error getting department by id:", error);
+      return null;
+    }
+  }
+
+  async getDeparmentEmployees(id: string): Promise<EmployeeDepartmentWithUser[] | null> {
+    try {
+      const employees = await db.employeeDepartment.findMany({
+        where: { departmentId: id },
+        include: { employee: true },
+      });
+      return employees;
+    } catch (error) {
+      console.error("Error getting department employees:", error);
       return null;
     }
   }

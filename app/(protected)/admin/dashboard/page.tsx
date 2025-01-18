@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { EmployeeViewInterface, EmployeeManagement } from '@/components/admin/EmployeeManagement'
-import DepartmentManagement, { DepartmentViewInterface } from '@/components/admin/DeparmentManagement'
+import { EmployeeViewInterface, EmployeeManagement } from '@/components/admin/Employee/EmployeeManagement'
+import DepartmentManagement, { DepartmentViewInterface } from '@/components/admin/Department/DeparmentManagement'
 import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
@@ -44,7 +44,7 @@ export default async function SupervisorDashboard() {
         </TabsList>
 
         <TabsContent value="departments">
-          <DepartmentManagement departments={departments ?? []} />
+          <DepartmentManagement />
         </TabsContent>
         <TabsContent value="employees">
           <EmployeeManagement employees={employees} />

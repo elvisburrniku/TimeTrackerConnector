@@ -71,3 +71,22 @@ export const getAllDepartmentsInfo = async () => {
     return { error: "Failed to get departments." };
   }
 }
+
+export const getDepartmentEmployees = async (userId: string, departmentId: string) => {
+  if (!userId){
+    return { error: "User ID is required." };
+  }
+
+  const permittedDepartments = await departmentService.getUserPermittedDepartments(userId);
+
+  if (!permittedDepartments || !permittedDepartments.some(department => department.id === departmentId)){
+    return { error: "User does not have permission to view this department." };
+  }
+
+  const employees = await departmentService.getDeparmentEmployees(departmentId);
+  if (employees) {
+    return { employees:employees, success: "Employees retrieved successfully!" };
+  } else {
+    return { error: "Failed to get employees." };
+  }
+}
