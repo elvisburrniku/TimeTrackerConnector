@@ -162,7 +162,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                             <PlusCircle className="w-4 h-4 mr-2" />
                                             Add Employee
                                         </Button>
-                                        <Button  variant="outline" size="sm" className="text-blue-600" onClick={() => { setIsEmployeeListDialogOpen(true) }}>
+                                        <Button  variant="outline" size="sm" className="text-blue-600" onClick={() => { setSelectedDepartment(department); setIsEmployeeListDialogOpen(true) }}>
                                             <Users className="w-4 h-4 mr-2" />
                                             View Employees
                                         </Button>

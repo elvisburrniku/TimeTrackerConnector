@@ -39,6 +39,15 @@ export const removeEmployeeFromDepartment = async (userId: string, departmentId:
   }
 };
 
+export const removeEmployeeFromDepartmentByRoleId = async (roleId: string) => {
+  const department = await departmentService.removeEmployeeFromDepartmentByRoleId(roleId);
+  if (department) {
+    return { success: "Employee removed from department successfully!", department };
+  } else {
+    return { error: "Failed to remove employee from department." };
+  }
+}
+
 export const getAllDepartments = async (userId: string) => {
   if (!userId){
     return { error: "User ID is required." };

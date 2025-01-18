@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Department, EmployeeDepartment, EmployeeDepartmentRole, User } from '@prisma/client'
-import { getDepartmentEmployees, removeEmployeeFromDepartment } from '@/actions/department'
+import { getDepartmentEmployees, removeEmployeeFromDepartment, removeEmployeeFromDepartmentByRoleId } from '@/actions/department'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { MoreHorizontal, Search, Edit, Trash } from 'lucide-react'
@@ -47,6 +47,8 @@ export default function DepartmentEmployeeListDialog({
                
                 setEmployees(response.employees)
 
+                console.log(response.employees)
+
             } else {
                 toast({
                     variant: 'destructive',
@@ -62,11 +64,11 @@ export default function DepartmentEmployeeListDialog({
         }
     }, [department.id, isOpen, user?.id])
 
-    const handleRemoveEmployee = async (employeeId: string) => {
+    const handleRemoveEmployee = async (roleId: string) => {
         if (!user?.id) return
-        const response = await removeEmployeeFromDepartment(user.id, department.id, employeeId)
+        const response = await removeEmployeeFromDepartmentByRoleId(roleId)
         if (response.success) {
-            setEmployees(employees.filter(emp => emp.id !== employeeId))
+            setEmployees(employees.filter(emp => emp.id !== roleId))
             toast({
                 title: 'Success',
                 description: response.success
