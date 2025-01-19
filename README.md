@@ -16,6 +16,25 @@ Employee:  john@timeclock.com / employee123
 Manager:   manager@timeclock.com / manager123
 ```
 
+## Roles
+
+### Super Admin
+- Access to all departments and system settings
+- Manage all users, departments, and configurations
+- View system-wide analytics and reports
+
+### Department Admin
+- Manage specific department(s)
+- Add/remove department employees
+- Configure department settings
+- View department reports
+
+### Department Manager
+- Oversee daily operations
+- Approve timesheets and leave requests
+- View department schedules
+- Manage employee assignments
+
 ## Features
 
 ### Authentication & Security
@@ -52,7 +71,6 @@ Manager:   manager@timeclock.com / manager123
 - **Authentication**: Auth.js v5
 - **Email**: Resend
 - **State Management**: React Context + Hooks
-- **Real-time**: Server Actions
 - **Deployment**: Vercel
 
 ## Setup

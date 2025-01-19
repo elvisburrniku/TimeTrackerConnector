@@ -1,4 +1,3 @@
-import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ExtendedUser } from '@/next-auth'
 import { LoginButton } from '../auth/login-button'
