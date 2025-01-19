@@ -25,9 +25,15 @@ export const UserButton = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-2">
-          <Avatar>
-            <AvatarImage src={user?.image || "/avatar.jpg"} alt="User Avatar" />
-          </Avatar>
+            <Avatar>
+            {user?.image ? (
+              <AvatarImage src={user.image} alt="User Avatar" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-muted">
+              {user?.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            </Avatar>
           <span className="hidden md:inline">{user?.name || "Guest"}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>

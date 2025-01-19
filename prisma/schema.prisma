@@ -113,12 +113,18 @@ model TwoFactorConfirmation {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   title     String
   message   String
   type      NotificationType
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  actionUrl String?
+  read      Boolean          @default(false)
+  priority              NotificationPriority   @default(LOW)
+  relatedEntityType    RelatedEntityType     @default(NOTIFICATION)
+  relatedEntityId String?
+
 
   // Relations
   user   User   @relation(fields: [userId], references: [id])
@@ -149,11 +155,11 @@ model EmployeeDepartment {
   updatedAt  DateTime @updatedAt
 
   // Relations
-  employee     User       @relation(fields: [userId], references: [id])
+  employee     User                   @relation(fields: [userId], references: [id])
   userId       String
-  department   Department @relation(fields: [departmentId], references: [id])
+  department   Department             @relation(fields: [departmentId], references: [id])
   departmentId String
-  role         EmployeeDepartmentRole       @default(EMPLOYEE)
+  role         EmployeeDepartmentRole @default(EMPLOYEE)
   position     String?
 
   @@unique([userId, departmentId])
@@ -161,14 +167,14 @@ model EmployeeDepartment {
 }
 
 model TimeEntry {
-  id         String    @id @default(cuid())
+  id         String          @id @default(cuid())
   clockIn    DateTime
   clockOut   DateTime?
-  status     TimeEntryStatus    @default(PENDING)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  status     TimeEntryStatus @default(PENDING)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
   approvedAt DateTime?
-  hours      Decimal   @db.Decimal(10, 2)
+  hours      Decimal         @db.Decimal(10, 2)
 
   // Relations
   employee     User       @relation(fields: [userId], references: [id])
@@ -184,13 +190,13 @@ model TimeEntry {
 }
 
 model TimeOffRequest {
-  id          String    @id @default(cuid())
-  startDate   DateTime  @db.Date
-  endDate     DateTime  @db.Date
+  id          String          @id @default(cuid())
+  startDate   DateTime        @db.Date
+  endDate     DateTime        @db.Date
   requestType String // vacation, sick, personal
-  status      TimeEntryStatus    @default(PENDING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status      TimeEntryStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   approvedAt  DateTime?
   message     String?
 
@@ -201,7 +207,7 @@ model TimeOffRequest {
   approvedById String?
 
   replacementEmployee User?   @relation("Replacement", fields: [replacementId], references: [id])
-  replacementId      String?
+  replacementId       String?
 
   @@index([startDate, endDate])
   @@map("time_off_requests")
@@ -218,12 +224,12 @@ model Holiday {
 }
 
 model DepartmentSchedule {
-  id         String   @id @default(cuid())
-  weekStart  DateTime @db.Date
-  weekEnd    DateTime @db.Date
-  schedules  WorkShift[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String      @id @default(cuid())
+  weekStart DateTime    @db.Date
+  weekEnd   DateTime    @db.Date
+  schedules WorkShift[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   // Relations
   department   Department @relation(fields: [departmentId], references: [id])
@@ -239,14 +245,14 @@ model DepartmentSchedule {
 
 model WorkShift {
   id          String   @id @default(cuid())
-  dayOfWeek   Int      // 0-6 for Sunday-Saturday
+  dayOfWeek   Int // 0-6 for Sunday-Saturday
   startTime   DateTime @db.Time
   endTime     DateTime @db.Time
   isRecurring Boolean  @default(false)
-  
+
   // Relations
-  schedule    DepartmentSchedule @relation(fields: [scheduleId], references: [id])
-  scheduleId  String
+  schedule   DepartmentSchedule @relation(fields: [scheduleId], references: [id])
+  scheduleId String
 
   @@map("work_shifts")
 }
@@ -264,11 +270,40 @@ enum TimeEntryStatus {
   REJECTED
 }
 
-
 enum NotificationType {
   MESSAGE
   ALERT
   REMINDER
   UPDATE
   ERROR
+  TIMESHEET_PENDING
+  TIMESHEET_APPROVED
+  TIMESHEET_REJECTED
+  SCHEDULE_UPDATED
+  SCHEDULE_CONFLICT
+  MISSING_CLOCKOUT
+  EARLY_LEAVE
+  OVERTIME_ALERT
+  DEPARTMENT_ADDED
+  DEPARTMENT_REMOVED
+  ROLE_UPDATED
+  SYSTEM_ALERT
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+
+enum RelatedEntityType {
+  USER
+  DEPARTMENT
+  TIMEOFF
+  TIMEENTRY
+  SCHEDULE
+  TIMESHEET
+  NOTIFICATION
 }
