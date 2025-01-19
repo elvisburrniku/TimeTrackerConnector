@@ -67,7 +67,7 @@ class TimeEntryService {
 
   async clockOut(userId: string, timeEntryId: string): Promise<TimeEntry | null> {
     try {
-      const timeEntry = await db.timeEntry.findUnique({ where: { id: timeEntryId } });
+      const timeEntry = await db.timeEntry.findUnique({ where: { id: timeEntryId }, include: { department: true } });
 
       if (!timeEntry || timeEntry.userId !== userId) {
         console.error("Time entry not found or user does not own the time entry.");

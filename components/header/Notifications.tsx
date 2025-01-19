@@ -22,9 +22,9 @@ export function NotificationsPopover() {
     const [unreadCount, setUnreadCount] = useState(0)
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
     const { toast } = useToast()
     const user = useCurrentUser();
-
 
     const fetchNotifications = async () => {
         if (!user || !user.id) return;
@@ -44,11 +44,29 @@ export function NotificationsPopover() {
         setLoading(false)
     }
 
+    // Initial fetch on mount
     useEffect(() => {
-        if (open) {
+        if (user?.id && !mounted) {
+            fetchNotifications()
+            setMounted(true)
+        }
+    }, [user])
+
+    // Fetch on open
+    useEffect(() => {
+        if (open && user?.id) {
             fetchNotifications()
         }
-    }, [open])
+    }, [open, user?.id])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            setMounted(false)
+            setNotifications([])
+            setUnreadCount(0)
+        }
+    }, [])
 
     const handleMarkAsRead = async (id: string) => {
         if (!user || !user.id) return;
@@ -83,7 +101,7 @@ export function NotificationsPopover() {
                     onClick={() => setOpen(true)}
                 >
                     <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
+                    {mounted && unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center">
                             {unreadCount}
                         </span>
@@ -182,13 +200,16 @@ export const getNotificationIcon = (type: NotificationType) => {
         case 'TIMESHEET_PENDING':
             return <Clock className="h-5 w-5 text-blue-500" />
         case 'TIMESHEET_APPROVED':
+        case 'TIMESHEET_APPROVED_ALL':
+        case 'TIMESHEET_DEPARTMENT_APPROVED_ALL':
             return <Check className="h-5 w-5 text-green-500" />
         case 'TIMESHEET_REJECTED':
-            return <UserCheck className="h-5 w-5 text-purple-500" />
+            return <UserCheck className="h-5 w-5 text-red-500" />
         case 'SCHEDULE_CONFLICT':
         case 'MISSING_CLOCKOUT':
         case 'EARLY_LEAVE':
         case 'OVERTIME_ALERT':
+        case 'CLOCKED_OUT':
             return <AlertTriangle className="h-5 w-5 text-orange-500" />
         case 'DEPARTMENT_ADDED':
             return <Check className="h-5 w-5 text-green-500" />

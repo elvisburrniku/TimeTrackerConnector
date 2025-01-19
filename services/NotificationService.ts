@@ -87,28 +87,48 @@ export class NotificationService {
     timesheetId: string,
     status: 'PENDING' | 'APPROVED' | 'REJECTED'
   ): Promise<Notification> {
-    const titles = {
-      PENDING: 'Timesheet Needs Review',
-      APPROVED: 'Timesheet Approved',
-      REJECTED: 'Timesheet Rejected'
-    }
-
-    const messages = {
-      PENDING: 'A new timesheet requires your review',
-      APPROVED: 'Your timesheet has been approved',
-      REJECTED: 'Your timesheet has been rejected'
-    }
-
     return await this.createNotification({
       userId,
-      title: titles[status],
-      message: messages[status],
+      title: `Timesheet ${status.toLowerCase()}`,
+      message: `Your timesheet has been ${status.toLowerCase()}`,
       type: `TIMESHEET_${status}` as NotificationType,
       priority: status === 'REJECTED' ? NotificationPriority.HIGH : NotificationPriority.MEDIUM,
       relatedEntityId: timesheetId,
-      relatedEntityType: 'TIMESHEET',
+      relatedEntityType: 'TIMESHEET'
     })
   }
+
+  async createTimesheetApprovedAllNotification(
+    userId: string,
+    departmentId: string
+  ): Promise<Notification> {
+    return await this.createNotification({
+      userId,
+      title: 'All Timesheets Approved',
+      message: 'All timesheets have been approved',
+      type: 'TIMESHEET_DEPARTMENT_APPROVED_ALL',
+      priority: NotificationPriority.MEDIUM,
+      relatedEntityId: departmentId,
+      relatedEntityType: 'DEPARTMENT'
+    })
+  }
+
+  async createClockedOutNotification(
+    userId: string,
+    timeEntryId: string,
+    message?: string
+  ): Promise<Notification> {
+    return await this.createNotification({
+      userId,
+      title: 'Clocked Out',
+      message: message ?? 'You have successfully clocked out',
+      type: NotificationType.CLOCKED_OUT, 
+      priority: NotificationPriority.MEDIUM,
+      relatedEntityId: timeEntryId,
+      relatedEntityType: RelatedEntityType.TIME_ENTRY
+    })
+  }
+
 }
 
 export const notificationService = new NotificationService()

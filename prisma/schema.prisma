@@ -116,7 +116,7 @@ model Notification {
   id        String           @id @default(cuid())
   title     String
   message   String
-  type      NotificationType
+  type      NotificationType  @default(MESSAGE)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   actionUrl String?
@@ -271,14 +271,16 @@ enum TimeEntryStatus {
 }
 
 enum NotificationType {
+  CLOCKED_OUT
+  TIMESHEET_PENDING
+  TIMESHEET_APPROVED
+  TIMESHEET_REJECTED
+  TIMESHEET_DEPARTMENT_APPROVED_ALL
   MESSAGE
   ALERT
   REMINDER
   UPDATE
   ERROR
-  TIMESHEET_PENDING
-  TIMESHEET_APPROVED
-  TIMESHEET_REJECTED
   SCHEDULE_UPDATED
   SCHEDULE_CONFLICT
   MISSING_CLOCKOUT
@@ -288,6 +290,7 @@ enum NotificationType {
   DEPARTMENT_REMOVED
   ROLE_UPDATED
   SYSTEM_ALERT
+  TIMESHEET_APPROVED_ALL
 }
 
 enum NotificationPriority {
@@ -306,4 +309,5 @@ enum RelatedEntityType {
   SCHEDULE
   TIMESHEET
   NOTIFICATION
+  TIME_ENTRY
 }

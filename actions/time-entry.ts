@@ -1,6 +1,23 @@
 "use server";
 
+import { notificationService } from "@/services/NotificationService";
 import { timeEntryService } from "@/services/TimeEntryService";
+import { TimeEntryStatus } from "@prisma/client";
+import { differenceInMilliseconds, format } from "date-fns";
+
+const formatTimeWorked = (milliseconds: number): string => {
+  const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+  const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours === 0) {
+    return `${minutes} minutes`;
+  }
+  return `${hours} hours ${minutes} minutes`;
+};
+
+const calculateTimeWorked = (clockIn: Date, clockOut: Date): number => {
+  return differenceInMilliseconds(clockOut, clockIn);
+};
 
 export const getUserTimeEntries = async (userId: string) => {
   const data = await timeEntryService.getUserTimeEntries(userId);
@@ -21,16 +38,43 @@ export const clockIn = async (userId: string, departmentId: string) => {
 };
 
 export const clockOut = async (userId: string, timeEntryId: string) => {
-  const data = await timeEntryService.clockOut(userId, timeEntryId);
-  if (data) {
-    return { success: "Clocked out successfully", data };
-  } else {
-    return { error: "Failed to clock out" };
+  try {
+    const data = await timeEntryService.clockOut(userId, timeEntryId)
+    
+    if (!data) {
+      return { error: "No active time entry found" };
+    }
+
+    const timeWorked = data.clockIn && data.clockOut 
+      ? calculateTimeWorked(data.clockIn, data.clockOut)
+      : 0;
+
+    const formattedTime = formatTimeWorked(timeWorked);
+    
+    const notificationMessage = 
+      `Clock out successful! You worked for ${formattedTime}. ` +
+      `Your time entry from ${data.clockIn ? format(data.clockIn, 'h:mm a') : 'unknown'} to ${data.clockOut ? format(data.clockOut, 'h:mm a') : 'unknown'} has been recorded.`;
+
+    await notificationService.createClockedOutNotification(
+      userId, 
+      timeEntryId, 
+      notificationMessage
+    );
+
+    return { 
+      success: `Clocked out successfully after ${formattedTime}`, 
+      data 
+    };
+
+  } catch (error) {
+    console.error("Clock out failed:", error);
+    return { error: "Failed to clock out. Please try again." };
   }
 };
 
 export const approveTimeEntry = async (userId: string, timeEntryId: string) => {
   const data = await timeEntryService.approveTimeEntry(userId, timeEntryId);
+  await notificationService.createTimesheetNotification(userId, timeEntryId, TimeEntryStatus.APPROVED);
   if (data) {
     return { success: "Time entry approved successfully", data };
   } else {
@@ -40,6 +84,8 @@ export const approveTimeEntry = async (userId: string, timeEntryId: string) => {
 
 export const discardTimeEntry = async (userId: string, timeEntryId: string) => {
   const data = await timeEntryService.discardTimeEntry(userId, timeEntryId);
+
+  await notificationService.createTimesheetNotification(userId, timeEntryId, TimeEntryStatus.REJECTED);
   if (data) {
     return { success: "Time entry discarded successfully", data };
   } else {
@@ -58,6 +104,9 @@ export const approveAllWeeklyTimeEntries = async (userId: string, departmentId: 
 
 export const approvalAllByDepartment = async (userId: string, departmentId: string) => {
   const data = await timeEntryService.approveAllByDepartment(userId, departmentId);
+
+  await notificationService.createTimesheetApprovedAllNotification(userId, departmentId);
+
   if (data) {
     return { success: "All time entries approved successfully", data };
   } else {

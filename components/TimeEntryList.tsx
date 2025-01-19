@@ -188,12 +188,12 @@ export function TimeEntryList() {
                     </TableCell>
                     <TableCell>{Number(entry.hours).toFixed(2)}h</TableCell>
                     <TableCell>
-                      <Badge variant={
+                      {entry.clockOut ? <Badge variant={
                         entry.status === 'PENDING' ? 'default' :
                           entry.status === 'APPROVED' ? 'secondary' : 'destructive'
                       }>
                         {entry.status}
-                      </Badge>
+                      </Badge> : 'In Progress'}
                     </TableCell>
                   </TableRow>
                 ))}
