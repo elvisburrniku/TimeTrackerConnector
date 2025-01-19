@@ -8,12 +8,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { format, startOfWeek } from 'date-fns'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { Badge } from '@/components/ui/badge'
 import { submitAllForApproval } from '@/actions/time-entry'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useToast } from '@/hooks/use-toast'
 import { LoadingSpinner } from './ui/loading-spinner'
+
+interface WeeklyChartData {
+  week: string
+  regular: number
+  overtime: number
+  total: number
+}
 
 export function TimeEntryList() {
   const { recentEntries, departmentMap, submitAllForApproval: updateApproval } = useTimeEntry()
@@ -25,8 +32,13 @@ export function TimeEntryList() {
   // Group entries by week
   const weeklyData = useMemo(() => {
     const weeks: { [key: string]: typeof recentEntries } = {}
+    
+    // Sort entries by date first
+    const sortedEntries = [...recentEntries].sort(
+      (a, b) => new Date(a.clockIn).getTime() - new Date(b.clockIn).getTime()
+    )
 
-    recentEntries.forEach(entry => {
+    sortedEntries.forEach(entry => {
       const weekStart = startOfWeek(new Date(entry.clockIn))
       const weekKey = format(weekStart, 'yyyy-MM-dd')
 
@@ -41,14 +53,28 @@ export function TimeEntryList() {
 
   // Prepare chart data
   const chartData = useMemo(() => {
-    return Object.entries(weeklyData).map(([week, entries]) => {
-      const totalHours = entries.reduce((acc, entry) => acc + Number(entry.hours), 0)
+    return Object.entries(weeklyData).map(([week, entries]): WeeklyChartData => {
+      // Calculate total hours for the week
+      const totalHours = entries.reduce((acc, entry) => {
+        // Only count completed entries
+        if (!entry.clockOut) return acc
+        return acc + Number(entry.hours)
+      }, 0)
+
+      // Round to 2 decimal places
+      const total = Number(totalHours.toFixed(2))
+      const regular = Number(Math.min(total, 40).toFixed(2))
+      const overtime = Number(Math.max(0, total - 40).toFixed(2))
+
       return {
         week: format(new Date(week), 'MMM d'),
-        hours: totalHours.toFixed(2),
-        overtime: Math.max(0, totalHours - 40),
-        regular: Math.min(totalHours, 40).toFixed(2)
+        regular,
+        overtime,
+        total
       }
+    }).sort((a, b) => {
+      // Sort by week date
+      return new Date(a.week).getTime() - new Date(b.week).getTime()
     })
   }, [weeklyData])
 
@@ -206,10 +232,24 @@ export function TimeEntryList() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="regular" stackId="a" fill="#10B981" name="Regular Hours" />
-                  <Bar dataKey="overtime" stackId="a" fill="#F97316" name="Overtime Hours" />
+                  <YAxis domain={[0, 'auto']} />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value.toFixed(2)}h`, '']}
+                    labelFormatter={(label) => `Week of ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="regular" 
+                    stackId="hours" 
+                    fill="#10B981" 
+                    name="Regular Hours (≤40h)"
+                  />
+                  <Bar 
+                    dataKey="overtime" 
+                    stackId="hours" 
+                    fill="#F97316" 
+                    name="Overtime Hours (>40h)"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
