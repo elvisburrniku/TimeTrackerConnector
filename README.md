@@ -1,27 +1,45 @@
 # TimeClock
 
-This project is a time management website, featuring functionalities for employees and managers to manage all employee timesheets, approvals, seek leave, etc.
-
+A comprehensive employee time management system built with Next.js 14 and TypeScript. Manage timesheets, schedules, departments, and leave requests with real-time updates.
 
 ## Features
 
-- **Authentication Providers**:
-  - Credentials
-  - OAuth (Google)
-- **Two-Factor Authentication (2FA)**
-- **Email Verification** using [Resend](https://resend.com/) for sending mails
-- **Protected Routes**: Restrict access to specific parts of the app to authenticated users
-- **User Session Management**: Efficient session handling to manage user login states
-- **PostgreSQL Integration** with **Prisma ORM**
+### Authentication & Security
+- Email/Password and Google OAuth authentication
+- Email verification via Resend
+- Protected routes and role-based access
 
-## Technologies Used
+### Department Management
+- Create and manage departments
+- Assign managers and employees
+- Set hourly rates and positions
 
-- **Next.js** (App Router)
-- **Auth.js v5**
-- **PostgreSQL** (with Prisma ORM)
-- **Resend** (for email services)
-- **TypeScript**
-- **Tailwind CSS** (for styling)
+### Time Tracking
+- Clock in/out functionality
+- Overtime calculations
+- Multiple department assignments
+
+### Timesheet Management
+- Weekly timesheet submissions
+- Manager approval workflow
+- Department-wise reports
+- Pay calculation
+
+### Notifications
+- Schedule updates
+- Timesheet approval status
+- Clock in/out confirmations
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL
+- **Authentication**: Auth.js v5
+- **Email**: Resend
+- **State Management**: React Context + Hooks
+- **Real-time**: Server Actions
+- **Deployment**: Vercel
 
 ## Setup
 
