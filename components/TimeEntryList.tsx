@@ -10,19 +10,26 @@ import { format, startOfWeek } from 'date-fns'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Badge } from '@/components/ui/badge'
+import { submitAllForApproval } from '@/actions/time-entry'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { useToast } from '@/hooks/use-toast'
+import { LoadingSpinner } from './ui/loading-spinner'
 
 export function TimeEntryList() {
-  const { recentEntries, departmentMap } = useTimeEntry()
+  const { recentEntries, departmentMap, submitAllForApproval: updateApproval } = useTimeEntry()
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
+  const user = useCurrentUser()
+  const { toast } = useToast()
 
   // Group entries by week
   const weeklyData = useMemo(() => {
     const weeks: { [key: string]: typeof recentEntries } = {}
-    
+
     recentEntries.forEach(entry => {
       const weekStart = startOfWeek(new Date(entry.clockIn))
       const weekKey = format(weekStart, 'yyyy-MM-dd')
-      
+
       if (!weeks[weekKey]) {
         weeks[weekKey] = []
       }
@@ -46,12 +53,51 @@ export function TimeEntryList() {
   }, [weeklyData])
 
   const filteredEntries = useMemo(() => {
-    return recentEntries.filter(entry => 
-      entry.createdAt.toISOString().includes(search) || 
+    return recentEntries.filter(entry =>
+      entry.createdAt.toISOString().includes(search) ||
       entry.status.toLowerCase().includes(search.toLowerCase()) ||
       departmentMap[entry.departmentId]?.name.toLowerCase().includes(search.toLowerCase())
     )
   }, [recentEntries, search, departmentMap])
+
+
+  const handleTimeSheetVerificationSubmit = async () => {
+    if (!user?.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'User not found. Please login again.'
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await submitAllForApproval(user.id)
+      if (res.data) {
+        toast({
+          title: 'Success',
+          description: `${res.data.length ?? 0} time entries submitted for approval successfully`
+        })
+        updateApproval()
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to submit time entries for approval'
+        })
+      }
+    } catch (error) {
+      console.error('Failed to submit time entries for approval:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to submit time entries for approval'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Card className="w-full">
@@ -59,8 +105,11 @@ export function TimeEntryList() {
         <div className="flex justify-between items-center">
           <CardTitle>Time Entries</CardTitle>
           <div className="space-x-2">
-            <Button onClick={() => {}} className="bg-orange-500 hover:bg-orange-600">
-              Submit Weekly
+            <Button
+            disabled={loading}
+             onClick={handleTimeSheetVerificationSubmit} className="bg-orange-500 hover:bg-orange-600">
+              {loading ? <LoadingSpinner /> : null}
+              Submit for Approval
             </Button>
             <Button onClick={() => window.print()} variant="outline">
               Print
@@ -76,9 +125,9 @@ export function TimeEntryList() {
           </TabsList>
 
           <div className="mb-4">
-            <Input 
-              placeholder="Search entries..." 
-              value={search} 
+            <Input
+              placeholder="Search entries..."
+              value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-sm"
             />
@@ -109,7 +158,7 @@ export function TimeEntryList() {
                     <TableCell>
                       <Badge variant={
                         entry.status === 'PENDING' ? 'default' :
-                        entry.status === 'APPROVED' ? 'secondary' : 'destructive'
+                          entry.status === 'APPROVED' ? 'secondary' : 'destructive'
                       }>
                         {entry.status}
                       </Badge>

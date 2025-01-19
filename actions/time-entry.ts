@@ -82,3 +82,21 @@ export const getActiveTimeEntry = async (userId: string) => {
     return { error: "Failed to fetch active time entry" };
   }
 }
+
+export const submitForApproval = async (userId: string, timeEntryId: string) => {
+  const data = await timeEntryService.submitForApproval(userId, timeEntryId);
+  if (data) {
+    return { success: "Time entry submitted for approval successfully", data };
+  } else {
+    return { error: "Failed to submit time entry for approval" };
+  }
+}
+
+export const submitAllForApproval = async (userId: string) => {
+  const data = await timeEntryService.submitAllForApproval(userId);
+  if (data) {
+    return { success: "All time entries submitted for approval successfully", data };
+  } else {
+    return { error: "Failed to submit all time entries for approval" };
+  }
+}

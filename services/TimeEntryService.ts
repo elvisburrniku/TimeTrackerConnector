@@ -254,6 +254,60 @@ class TimeEntryService {
     }
   }
 
+  async submitForApproval(userId: string, timeEntryId: string): Promise<TimeEntry | null> {
+    try {
+      const timeEntry = await db.timeEntry.findUnique({ where: { id: timeEntryId } });
+
+      if (!timeEntry || timeEntry.userId !== userId) {
+        console.error("Time entry not found or user does not own the time entry.");
+        return null;
+      }
+
+      const updatedTimeEntry = await db.timeEntry.update({
+        where: { id: timeEntryId },
+        data: {
+          status: TimeEntryStatus.PENDING,
+        },
+      });
+
+      return updatedTimeEntry;
+    } catch (error) {
+      console.error("Error submitting time entry for approval:", error);
+      return null;
+    }
+  }
+
+  async submitAllForApproval(userId: string): Promise<TimeEntry[] | null> {
+    try {
+      const timeEntries = await db.timeEntry.findMany({
+        where: {
+          userId,
+          status: TimeEntryStatus.NOTSUBMITTED,
+        },
+      });
+
+      if (!timeEntries) {
+        console.error("No time entries found.");
+        return null;
+      }
+
+      await db.timeEntry.updateMany({
+        where: {
+          userId,
+          status: TimeEntryStatus.NOTSUBMITTED,
+        },
+        data: {
+          status: TimeEntryStatus.PENDING,
+        },
+      });
+
+      return timeEntries;
+    } catch (error) {
+      console.error("Error submitting all time entries for approval:", error);
+      return null;
+    }
+  }
+
 }
 
 export const timeEntryService = new TimeEntryService();

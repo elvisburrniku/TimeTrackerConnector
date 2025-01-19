@@ -1,6 +1,6 @@
 'use client'
 
-import { Department, TimeEntry } from '@prisma/client'
+import { Department, TimeEntry, TimeEntryStatus } from '@prisma/client'
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import Decimal from 'decimal.js'
 
@@ -16,6 +16,7 @@ type TimeEntryContextType = {
   setLoading: (loading: boolean) => void
   permittedDepartments: Department[]
   permittedDepartmentsMap: { [key: string]: Department }
+  submitAllForApproval: () => void
 }
 
 const TimeEntryContext = createContext<TimeEntryContextType | undefined>(undefined)
@@ -82,12 +83,22 @@ export function TimeEntryProvider({ children,
     setLoading(false)
   }
 
+
   const addEntry = (entry: TimeEntry) => {
     setRecentEntries([entry, ...recentEntries])
   }
 
+  const submitAllForApproval = async () => {
+    setRecentEntries(recentEntries.map(entry => {
+      if (entry.status === TimeEntryStatus.NOTSUBMITTED) {
+        return { ...entry, status: TimeEntryStatus.PENDING }
+      }
+      return entry
+    }
+    ))
+  }
   return (
-    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut,permittedDepartmentsMap, addEntry, permittedDepartments, loading, setLoading, departments, departmentMap }}>
+    <TimeEntryContext.Provider value={{ currentEntry, recentEntries, clockIn, clockOut,submitAllForApproval, permittedDepartmentsMap, addEntry, permittedDepartments, loading, setLoading, departments, departmentMap }}>
       {children}
     </TimeEntryContext.Provider>
   )
