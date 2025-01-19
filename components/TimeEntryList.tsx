@@ -170,7 +170,7 @@ export function TimeEntryList() {
           </TabsContent>
 
           <TabsContent value="graph" className="w-full">
-            <div className="h-[400px] mt-4">
+            <div className="h-[700px] mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <XAxis dataKey="week" />
