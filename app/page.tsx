@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@prisma/client'
 import Link from 'next/link'
-import {  Users, Calendar, Settings, BarChart, UserCog } from 'lucide-react'
+import { Users, Calendar, Settings, BarChart, UserCog } from 'lucide-react'
 import { getEmployeePermittedDepartmentsInfo, getPermittedDepartmentsInfo } from '@/actions/department'
 import { TimeClock } from '@/components/TimeClock'
 import { getWeeklyStats } from '@/actions/work-stats'
@@ -25,7 +25,8 @@ const HomePage = async () => {
                             Welcome to <span className="text-orange-600">TimeClock</span>
                         </h1>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Streamline your time tracking and management with our modern solution. Built for teams who value simplicity and efficiency.
+
+                            Manage your team's time tracking, attendance, and work schedules all in one place.
                         </p>
                         <div className="flex justify-center gap-4 pt-6">
                             <Button size="lg" className="bg-orange-600 hover:bg-orange-700">
