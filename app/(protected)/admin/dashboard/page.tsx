@@ -5,6 +5,8 @@ import DepartmentManagement, { DepartmentViewInterface } from '@/components/admi
 import { currentUser } from '@/lib/auth'
 import { getAllDepartments } from '@/actions/department'
 import { getEmployessByDepartmentIds } from '@/actions/employees'
+import { Suspense } from 'react'
+import { DepartmentManagementSkeleton, EmployeeManagementSkeleton } from '@/components/skeleton/components/AdminSkeleton'
 
 export default async function SupervisorDashboard({
   searchParams,
@@ -49,10 +51,14 @@ export default async function SupervisorDashboard({
         </TabsList>
 
         <TabsContent value="departments">
-          <DepartmentManagement departments={departments ?? []} />
+          <Suspense fallback={<DepartmentManagementSkeleton />}>
+            <DepartmentManagement departments={departments ?? []} />
+          </Suspense>
         </TabsContent>
         <TabsContent value="employees">
-          <EmployeeManagement employees={employees} />
+          <Suspense fallback={<EmployeeManagementSkeleton />}>
+            <EmployeeManagement employees={employees} />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

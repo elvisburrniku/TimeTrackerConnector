@@ -6,10 +6,10 @@ import { useTimeEntry } from '@/_context/TimeEntryContext';
 import {  endOfWeek, format } from 'date-fns';
 import { ArrowUpIcon, ClockIcon, DollarSignIcon, CalendarIcon } from 'lucide-react';
 import { getWeeklyStats } from '@/actions/work-stats';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { WorkStats } from '@/services/WorkStatsService';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { toast } from '@/hooks/use-toast';
+import StatisticsCardsSkelethon from './skeleton/components/StatisticsCardsSkelethon';
 
 export function StatisticsCards() {
   const { currentEntry } = useTimeEntry();
@@ -38,7 +38,7 @@ export function StatisticsCards() {
   }, [currentEntry]);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <StatisticsCardsSkelethon />;
   }
 
   const totalHours = stats?.weeklyHours ?? 0;
