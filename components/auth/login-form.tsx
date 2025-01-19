@@ -70,8 +70,6 @@ export const LoginForm = () => {
 
           window.location.reload();
 
-
-
         })
         .catch(() => setError("Something went wrong"));
     });

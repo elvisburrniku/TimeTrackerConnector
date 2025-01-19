@@ -77,7 +77,7 @@ const HomePage = async () => {
                                     Welcome back, {user.name}
                                 </h1>
                                 <p className="text-gray-600 mt-1">
-                                    Here&apos;`s your workspace overview
+                                    Here&apos;s your workspace overview
                                 </p>
                             </div>
                             <Button className="bg-orange-600 hover:bg-orange-700" asChild>

@@ -201,12 +201,12 @@ class TimeEntryService {
 
   async getWeeklyReport(userId: string, departmentId: string): Promise<any | null> {
     try {
-      const permittedDepartments = await departmentService.getUserPermittedDepartments(userId);
+      // const permittedDepartments = await departmentService.getUserPermittedDepartments(userId);
 
-      if (!permittedDepartments || !permittedDepartments.some(dept => dept.id === departmentId)) {
-        console.error("Permission denied.");
-        return null;
-      }
+      // if (!permittedDepartments || !permittedDepartments.some(dept => dept.id === departmentId)) {
+      //   console.error("Permission denied.");
+      //   return null;
+      // }
 
       const startOfWeek = new Date();
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
@@ -217,6 +217,7 @@ class TimeEntryService {
       const report = await db.timeEntry.findMany({
         where: {
           departmentId,
+          userId,
           clockIn: {
             gte: startOfWeek,
             lte: endOfWeek,
