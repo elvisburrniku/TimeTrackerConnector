@@ -20,7 +20,6 @@ export function StatisticsCards() {
   useEffect(() => {
     const fetchStats = async (userId: string) => {
       const response = await getWeeklyStats(userId);
-      console.log(response);
       if (response.data) {
         setStats(response.data);
       } else {

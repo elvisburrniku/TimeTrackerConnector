@@ -52,8 +52,7 @@ export const searchUsers = async (query: string) => {
 
 
     return users;
-  } catch (error) {
-    console.log("error", error);
+  } catch {
     return null;
   }
 }
