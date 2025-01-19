@@ -196,7 +196,7 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                               </Button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                               <div>
                                 <label className="text-sm font-medium">Role</label>
                                 <Select value={dept.role} onValueChange={(value) => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), value as EmployeeDepartmentRole)}>
@@ -210,7 +210,10 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                                   </SelectContent>
                                 </Select>
                               </div>
-
+                              <div>
+                                <label className="text-sm font-medium">Position</label>
+                               <Input value={dept.position ?? ''} onChange={(e) => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
+                              </div>
                               <div>
                                 <label className="text-sm font-medium">Hourly Rate</label>
                                 <Input
@@ -219,6 +222,8 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                                   onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
                                 />
                               </div>
+
+                             
                             </div>
                           </div>
                         ))}
