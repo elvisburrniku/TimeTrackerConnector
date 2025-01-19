@@ -4,7 +4,7 @@ import * as z from "zod";
 
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schemas";
 
@@ -26,7 +26,6 @@ import Link from "next/link";
 
 export const LoginForm = () => {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl");
   const urlError =
     searchParams.get("error") === "OAuthAccountNotLinked"
       ? "Email already in use with different provider!"
@@ -36,6 +35,7 @@ export const LoginForm = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -50,11 +50,18 @@ export const LoginForm = () => {
     setSuccess("");
 
     startTransition(() => {
-      login(values, callbackUrl)
+      login(values)
         .then((data) => {
+          console.log("login data", data);
           if (data?.error) {
             form.reset();
             setError(data.error);
+            return
+          }
+
+          if (data?.twoFactor) {
+            setShowTwoFactor(true);
+            return
           }
 
           if (data?.success) {
@@ -62,9 +69,10 @@ export const LoginForm = () => {
             setSuccess(data.success);
           }
 
-          if (data?.twoFactor) {
-            setShowTwoFactor(true);
-          }
+          window.location.reload();
+
+
+
         })
         .catch(() => setError("Something went wrong"));
     });

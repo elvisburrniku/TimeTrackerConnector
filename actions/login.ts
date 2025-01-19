@@ -101,6 +101,12 @@ export const login = async (
       password,
       redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
     });
+
+    console.log("Logged in!");
+
+    return {
+      success: "Logged in!",
+    };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -113,4 +119,5 @@ export const login = async (
 
     throw error;
   }
+  
 };
