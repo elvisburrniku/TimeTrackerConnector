@@ -212,7 +212,7 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                               </div>
                               <div>
                                 <label className="text-sm font-medium">Position</label>
-                               <Input value={dept.position ?? ''} onChange={(e) => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
+                               <Input value={dept.position ?? ''} onChange={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
                               </div>
                               <div>
                                 <label className="text-sm font-medium">Hourly Rate</label>
