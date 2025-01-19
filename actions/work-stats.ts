@@ -1,8 +1,11 @@
+"use server";
+
 import { workStatsService } from '@/services/WorkStatsService'
 
 export async function getWeeklyStats(userId: string) {
   try {
     const stats = await workStatsService.getWeeklyStats(userId)
+    console.log('stats:', stats)
     return { data: stats }
   } catch (error) {
     console.error('Failed to fetch work stats:', error)

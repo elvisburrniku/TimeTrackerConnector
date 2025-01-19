@@ -46,7 +46,6 @@ class DepartmentService {
         include: { employee: true },
       });
 
-      console.log(employees);
       return employees;
     } catch (error) {
       console.error("Error getting department employees:", error);
@@ -104,7 +103,6 @@ class DepartmentService {
         departmentId,
       },
     });
-    console.log(userDeparmentRole);
     if (!user || (user.role !== UserRole.ADMIN && userDeparmentRole?.role !== EmployeeDepartmentRole.MANAGER)) {
       console.error("Permission denied: Only ADMIN or MANAGER can add an employee to a department.");
       return null;
@@ -366,7 +364,6 @@ class DepartmentService {
         include: { department: true },
       });
 
-      console.log(departments);
 
 
       const depertmentsInfo = await db.department.findMany({

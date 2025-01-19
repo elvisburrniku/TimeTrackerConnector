@@ -19,6 +19,8 @@ interface DepartmentStats {
   hours: number
   pay: number
   rate: number
+  regularHours: number
+  overtimeHours: number
 }
 
 export class WorkStatsService {
@@ -34,7 +36,8 @@ export class WorkStatsService {
             gte: weekStart,
             lte: weekEnd
           }
-        }
+        },
+        orderBy: { clockIn: 'desc' }
       }),
       db.employeeDepartment.findMany({
         where: { userId },
@@ -44,18 +47,15 @@ export class WorkStatsService {
         where: {
           userId,
           clockOut: null
-        },
-        orderBy: { clockIn: 'desc' }
+        }
       })
     ])
 
     const departmentStats = await this.calculateDepartmentStats(timeEntries, departments)
-    const weeklyHours = this.calculateTotalHours(timeEntries)
-    const overtimeHours = Math.max(weeklyHours - 40, 0)
-    const expectedPay = departmentStats.reduce((total, dept) => total + dept.pay, 0)
+    const weeklyHours = Number(departmentStats.reduce((total, dept) => total + dept.hours, 0).toFixed(2))
+    const overtimeHours = Number(Math.max(weeklyHours - 40, 0).toFixed(2))
+    const expectedPay = Number(departmentStats.reduce((total, dept) => total + dept.pay, 0).toFixed(2))
     const lastClockIn = timeEntries[0]?.clockIn
-
-    const scheduleAdherence = await this.calculateScheduleAdherence(userId, timeEntries, weekStart)
 
     return {
       weeklyHours,
@@ -64,7 +64,7 @@ export class WorkStatsService {
       departmentStats,
       currentEntry,
       lastClockIn,
-      scheduleAdherence
+      scheduleAdherence: 100 // Placeholder
     }
   }
 
@@ -74,26 +74,30 @@ export class WorkStatsService {
   ): Promise<DepartmentStats[]> {
     return departments.map(dept => {
       const deptEntries = entries.filter(entry => entry.departmentId === dept.departmentId)
-      const hours = this.calculateTotalHours(deptEntries)
-      const regularHours = Math.min(hours, 40)
-      const overtimeHours = Math.max(hours - 40, 0)
-      const pay = (regularHours * Number(dept.hourlyRate)) + (overtimeHours * Number(dept.hourlyRate) * 1.5)
+      const hours = Number(this.calculateTotalHours(deptEntries).toFixed(2))
+      const regularHours = Number(Math.min(hours, 40).toFixed(2))
+      const overtimeHours = Number(Math.max(hours - 40, 0).toFixed(2))
+      const rate = Number(dept.hourlyRate)
+      const pay = Number((regularHours * rate + overtimeHours * rate * 1.5).toFixed(2))
 
       return {
         departmentId: dept.departmentId,
         departmentName: dept.department.name,
         hours,
         pay,
-        rate: Number(dept.hourlyRate)
+        rate,
+        regularHours,
+        overtimeHours
       }
     })
   }
 
   private calculateTotalHours(entries: TimeEntry[]): number {
     return entries.reduce((total, entry) => {
+      if (!entry.clockIn) return total
       const end = entry.clockOut || new Date()
-      const hours = differenceInMinutes(end, entry.clockIn) / 60
-      return total + hours
+      const minutes = differenceInMinutes(end, entry.clockIn)
+      return total + (minutes / 60)
     }, 0)
   }
 
@@ -116,9 +120,8 @@ export class WorkStatsService {
 
     if (!schedule.length) return 100
 
-    // Calculate adherence based on scheduled vs actual hours
-    // Implementation depends on your schedule structure
-    return 95 // Placeholder
+    // Implementation after schedule is added
+    return 95 
   }
 }
 

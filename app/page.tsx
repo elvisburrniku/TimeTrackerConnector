@@ -1,10 +1,9 @@
-import { Header } from '@/components/header/Header'
 import { currentUser } from '@/lib/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@prisma/client'
 import Link from 'next/link'
-import { Clock, Users, Calendar, Settings, BarChart, UserCog } from 'lucide-react'
+import {  Users, Calendar, Settings, BarChart, UserCog } from 'lucide-react'
 import { getEmployeePermittedDepartmentsInfo, getPermittedDepartmentsInfo } from '@/actions/department'
 import { TimeClock } from '@/components/TimeClock'
 import { getWeeklyStats } from '@/actions/work-stats'
@@ -50,7 +49,6 @@ const HomePage = async () => {
         getWeeklyStats(user.id)
     ]);
 
-    console.log(employeePermittedDepartments, permittedDepartments, weeklyStats);
 
     const stats = weeklyStats.data
     const isAdmin = user.role === UserRole.ADMIN || (permittedDepartments.departments ?? []).length != 0;
@@ -67,7 +65,7 @@ const HomePage = async () => {
                                     Welcome back, {user.name}
                                 </h1>
                                 <p className="text-gray-600 mt-1">
-                                    Here's your workspace overview
+                                    Here&apos;`s your workspace overview
                                 </p>
                             </div>
                             <Button className="bg-orange-600 hover:bg-orange-700" asChild>

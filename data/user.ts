@@ -50,7 +50,6 @@ export const searchUsers = async (query: string) => {
       },
     });
 
-    console.log(users);
 
     return users;
   } catch (error) {

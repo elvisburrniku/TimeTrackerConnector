@@ -109,9 +109,9 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
     }
 
     console.log(employeeId, departmentId, pay, role)
+
   }
 
-  console.log(filteredEmployees)
 
   return (
     <Card>

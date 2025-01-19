@@ -30,7 +30,6 @@ export default function DepartmentEmployeeListDialog({
     isOpen, 
     onOpenChange 
 }: DepartmentEmployeeListDialogProps) {
-    console.log(department)
     const [employees, setEmployees] = useState<EmployeeDepartmentWithUser[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -47,7 +46,6 @@ export default function DepartmentEmployeeListDialog({
                
                 setEmployees(response.employees)
 
-                console.log(response.employees)
 
             } else {
                 toast({

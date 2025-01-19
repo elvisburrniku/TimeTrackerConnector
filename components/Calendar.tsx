@@ -27,12 +27,12 @@ export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const { recentEntries } = useTimeEntry()
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+  console.log(selectedDay)
 
   const getDaysInMonth = (year: number, month: number) => {
 
     return new Date(year, month + 1, 0).getDate()
   }
-  console.log(selectedDay)
 
   const getCalendarDays = (): CalendarDay[] => {
     const year = currentDate.getFullYear()
@@ -92,7 +92,6 @@ export function Calendar() {
   const getHoursWorked = (day: number) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0]
     const entries = recentEntries.filter(entry => entry.clockIn.toISOString().split('T')[0] === date)
-    console.log(entries)
     return entries.reduce((total, entry) => total + Number(entry.hours), 0)
   }
 

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
-import { Department, EmployeeDepartment, EmployeeDepartmentRole, TimeEntry, TimeEntryStatus } from '@prisma/client'
+import { Department, EmployeeDepartment, TimeEntry, TimeEntryStatus } from '@prisma/client'
 import {
   getWeeklyReport,
   approveTimeEntry,
@@ -210,14 +210,13 @@ export default function TimeSheetManagement({ userId, employeeDepartments : _e }
             ))}
           </TabsList>
 
-          {employeeDepartments.map(({ departmentId, role }) => (
+          {employeeDepartments.map(({ departmentId }) => (
             <TabsContent key={departmentId} value={departmentId}>
               <DepartmentTimesheet
                 entries={entriesByDepartment[departmentId] || []}
                 loading={loading}
                 canApprove={canApproveTimeEntries(departmentId)}
                 department={departmentMap[departmentId]}
-                role={role}
                 onApprove={handleApproveEntry}
                 onDiscard={handleDiscardEntry}
                 onApproveAll={handleApproveAll}
@@ -253,7 +252,6 @@ function DepartmentTimesheet({
   loading,
   canApprove,
   department,
-  role,
   onApprove,
   onDiscard,
   onApproveAll
@@ -262,12 +260,10 @@ function DepartmentTimesheet({
   loading: boolean
   canApprove: boolean
   department: Department
-  role: EmployeeDepartmentRole
   onApprove: (id: string) => Promise<void>
   onDiscard: (id: string) => Promise<void>
   onApproveAll: (departmentId: string) => Promise<void>
 }) {
-  console.log(role)
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">

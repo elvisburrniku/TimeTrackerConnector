@@ -1,37 +1,52 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeEntry } from '@/_context/TimeEntryContext';
-import { startOfWeek, endOfWeek, differenceInSeconds, format } from 'date-fns';
+import {  endOfWeek, format } from 'date-fns';
 import { ArrowUpIcon, ClockIcon, DollarSignIcon, CalendarIcon } from 'lucide-react';
+import { getWeeklyStats } from '@/actions/work-stats';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { WorkStats } from '@/services/WorkStatsService';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { toast } from '@/hooks/use-toast';
 
 export function StatisticsCards() {
-  const { recentEntries, currentEntry } = useTimeEntry();
-  
-  // Calculate weekly statistics
-  const now = new Date();
-  const weekStart = startOfWeek(now);
-  const weekEnd = endOfWeek(now);
-  
-  const weeklyHours = recentEntries
-    .filter(entry => {
-      const entryDate = new Date(entry.clockIn);
-      return entryDate >= weekStart && entryDate <= weekEnd;
-    })
-    .reduce((total, entry) => {
-      const seconds = entry.clockOut 
-        ? differenceInSeconds(new Date(entry.clockOut), new Date(entry.clockIn))
-        : 0;
-      return total + (seconds / 3600);
-    }, 0);
+  const { currentEntry } = useTimeEntry();
+  const [stats, setStats] = useState<WorkStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const user = useCurrentUser();
 
-  const overtimeHours = Math.max(0, weeklyHours - 40);
-  const regularHours = weeklyHours - overtimeHours;
-  
-  // Estimate pay (example rates)
-  const regularRate = 15;
-  const overtimeRate = regularRate * 1.5;
-  const estimatedPay = (regularHours * regularRate) + (overtimeHours * overtimeRate);
+  useEffect(() => {
+    const fetchStats = async (userId: string) => {
+      const response = await getWeeklyStats(userId);
+      console.log(response);
+      if (response.data) {
+        setStats(response.data);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: response.error || 'Failed to load stats'
+        })
+      }
+    };
+    if (user && user.id) {
+      setLoading(false);
+      fetchStats(user.id);
+      setLoading(false);
+    }
+  }, [currentEntry]);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  const totalHours = stats?.weeklyHours ?? 0;
+  const overtimeHours = stats?.overtimeHours ?? 0;
+  const expectedPay = stats?.expectedPay ?? 0;
+  const now = new Date();
+  const weekEnd = endOfWeek(now);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -42,15 +57,15 @@ export function StatisticsCards() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <div className="text-2xl font-bold text-gray-900">{weeklyHours.toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-gray-900">{totalHours}h</div>
             <div className="flex items-center pt-1">
               <div className="h-2 flex rounded-full overflow-hidden bg-orange-100 w-full">
-                <div 
+                <div
                   className="bg-orange-500 transition-all duration-500"
-                  style={{ width: `${Math.min((weeklyHours / 40) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((totalHours / 40) * 100, 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-orange-600 ml-2">{((weeklyHours / 40) * 100).toFixed(0)}%</span>
+              <span className="text-xs text-orange-600 ml-2">{((totalHours / 40) * 100).toFixed(0)}%</span>
             </div>
           </div>
         </CardContent>
@@ -64,9 +79,10 @@ export function StatisticsCards() {
         <CardContent>
           <div className="flex flex-col">
             <div className="text-2xl font-bold text-gray-900">{overtimeHours.toFixed(1)}h</div>
-            <p className="text-xs text-blue-600">
-              Rate: ${overtimeRate.toFixed(2)}/hr
-            </p>
+           
+            <p
+            className='text-xs text-blue-600'
+            >Overtime pay 1.5x</p>
           </div>
         </CardContent>
       </Card>
@@ -78,9 +94,12 @@ export function StatisticsCards() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
-            <div className="text-2xl font-bold text-gray-900">${estimatedPay.toFixed(2)}</div>
-            <div className="text-xs text-gray-500">
-              Next pay date: {format(weekEnd, 'MMM dd, yyyy')}
+            <div className="text-2xl font-bold text-gray-900">${expectedPay.toFixed(2)}</div>
+            <div className="space-y-1">
+
+              <div className="text-xs text-gray-500">
+                Next pay: {format(weekEnd, 'MMM dd, yyyy')}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -101,11 +120,16 @@ export function StatisticsCards() {
               )}
             </div>
             <p className="text-xs text-green-600">
-              {currentEntry 
+              {currentEntry
                 ? `Started: ${format(new Date(currentEntry.clockIn), 'hh:mm a')}`
                 : 'Not clocked in'
               }
             </p>
+            {currentEntry && (
+              <p className="text-xs text-green-600 mt-1">
+                Department: {stats?.departmentStats.find(d => d.departmentId === currentEntry.departmentId)?.departmentName}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
