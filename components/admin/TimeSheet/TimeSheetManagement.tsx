@@ -266,8 +266,8 @@ function DepartmentTimesheet({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
+      <div className="flex justify-between flex-wrap gap-2 items-center">
+        <div className="flex gap-2 ">
           <Badge variant="outline">
             Total Entries: {entries.length}
           </Badge>

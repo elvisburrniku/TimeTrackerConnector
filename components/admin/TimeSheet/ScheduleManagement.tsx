@@ -32,9 +32,9 @@ interface ScheduleManagementProps {
     employeeDepartments: EmployeeDepartment[]
 }
 
-export default function ScheduleManagement({ userId, employeeDepartments : _e }: ScheduleManagementProps) {
-    const {permittedDepartmentsMap} = useTimeEntry();
-    const [employeeDepartments, ] = useState<EmployeeDepartment[]>(_e.filter(dept => permittedDepartmentsMap[dept.departmentId]))
+export default function ScheduleManagement({ userId, employeeDepartments: _e }: ScheduleManagementProps) {
+    const { permittedDepartmentsMap } = useTimeEntry();
+    const [employeeDepartments,] = useState<EmployeeDepartment[]>(_e.filter(dept => permittedDepartmentsMap[dept.departmentId]))
     const [selectedDepartment, setSelectedDepartment] = useState(employeeDepartments[0]?.departmentId)
     const [selectedWeek, setSelectedWeek] = useState<DateRange>({
         from: startOfWeek(new Date()),
@@ -132,7 +132,7 @@ export default function ScheduleManagement({ userId, employeeDepartments : _e }:
                 </div>
             </CardHeader>
             <CardContent>
-                <Tabs defaultValue={selectedDepartment}       onValueChange={setSelectedDepartment}>
+                <Tabs defaultValue={selectedDepartment} onValueChange={setSelectedDepartment}>
                     <TabsList>
                         {employeeDepartments.map(dept => (
                             <TabsTrigger key={dept.departmentId} value={dept.departmentId}>
@@ -141,54 +141,54 @@ export default function ScheduleManagement({ userId, employeeDepartments : _e }:
                         ))}
                     </TabsList>
                     <div className="grid grid-cols-12 gap-4 mt-4">
-            <div className="col-span-4">
-              <Calendar
-                mode="range"
-                selected={selectedWeek}
-                onSelect={handleWeekSelect}
-                numberOfMonths={1}
-                disabled={(date) => date < new Date()}
-                defaultMonth={selectedWeek.from}
-                showOutsideDays={false}
-                fixedWeeks
-              />
-              {loading && (
-                <div className="mt-4 text-center">
-                  <LoadingSpinner />
-                </div>
-              )}
-            </div>
-            <div className="col-span-8">
-              <TimeGrid
-                shifts={shifts}
-                onChange={(newShifts) => {
-                  setShifts(newShifts.map(shift => ({
-                    ...shift,
-                    id: crypto.randomUUID(),
-                    scheduleId: existingSchedule?.id || ''
-                  })))
-                }}
-                disabled={loading}
-                existingSchedule={existingSchedule}
-              />
-              <div className="mt-4 flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShifts(existingSchedule?.schedules || [])
-                  }}
-                >
-                  Reset
-                </Button>
-                <Button
-                  onClick={handleCreateSchedule}
-                  disabled={!selectedWeek.from || !selectedWeek.to || loading}
-                >
-                  {existingSchedule ? 'Update Schedule' : 'Create Schedule'}
-                </Button>
-              </div>
-            </div>
-            </div>
+                        <div className="col-span-4">
+                            <Calendar
+                                mode="range"
+                                selected={selectedWeek}
+                                onSelect={handleWeekSelect}
+                                numberOfMonths={1}
+                                disabled={(date) => date < new Date()}
+                                defaultMonth={selectedWeek.from}
+                                showOutsideDays={false}
+                                fixedWeeks
+                            />
+                            {loading && (
+                                <div className="mt-4 text-center">
+                                    <LoadingSpinner />
+                                </div>
+                            )}
+                        </div>
+                        <div className="col-span-8">
+                            <TimeGrid
+                                shifts={shifts}
+                                onChange={(newShifts) => {
+                                    setShifts(newShifts.map(shift => ({
+                                        ...shift,
+                                        id: crypto.randomUUID(),
+                                        scheduleId: existingSchedule?.id || ''
+                                    })))
+                                }}
+                                disabled={loading}
+                                existingSchedule={existingSchedule}
+                            />
+                            <div className="mt-4 flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShifts(existingSchedule?.schedules || [])
+                                    }}
+                                >
+                                    Reset
+                                </Button>
+                                <Button
+                                    onClick={handleCreateSchedule}
+                                    disabled={!selectedWeek.from || !selectedWeek.to || loading}
+                                >
+                                    {existingSchedule ? 'Update Schedule' : 'Create Schedule'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 </Tabs>
             </CardContent>
         </Card >
