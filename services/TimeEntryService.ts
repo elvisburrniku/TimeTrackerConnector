@@ -208,20 +208,10 @@ class TimeEntryService {
       //   return null;
       // }
 
-      const startOfWeek = new Date();
-      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-
       const report = await db.timeEntry.findMany({
         where: {
           departmentId,
           userId,
-          clockIn: {
-            gte: startOfWeek,
-            lte: endOfWeek,
-          },
         },
         include: {
           employee: true,
