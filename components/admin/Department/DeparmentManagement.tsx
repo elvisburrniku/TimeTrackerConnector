@@ -142,7 +142,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                         </DropdownMenu>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-4 mt-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                                         <div className="p-4 bg-orange-50 rounded-lg">
                                             <p className="text-sm text-orange-600 mb-1">Employees</p>
                                             <p className="text-2xl font-bold">{department.employeeCount}</p>
@@ -157,7 +157,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2 mt-4">
+                                    <div className="flex gap-2 mt-4 flex-wrap">
                                         <Button variant={'outline'} onClick={() => { setSelectedDepartment(department); setIsAddEmployeeDialogOpen(true) }}
                                             className='text-yellow-600' size="sm"
                                         >

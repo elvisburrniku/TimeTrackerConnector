@@ -43,7 +43,7 @@ export default async function SupervisorDashboard({
       </Card>
 
       <Tabs defaultValue={activeTab as string ?? "departments"} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="departments">Department Management</TabsTrigger>
           <TabsTrigger value="employees">Employee Management</TabsTrigger>
         </TabsList>
