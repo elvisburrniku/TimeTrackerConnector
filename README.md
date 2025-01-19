@@ -2,7 +2,12 @@
 
 A comprehensive employee time management system built with Next.js 14 and TypeScript. Manage timesheets, schedules, departments, and leave requests with real-time updates.
 
-## Demo Credentials
+
+## Live Demo
+
+Check out the live demo at: [TimeClock Demo](https://timeclock.dineshchhantyal.com)
+
+### Demo Credentials
 
 ```typescript
 // Test accounts
