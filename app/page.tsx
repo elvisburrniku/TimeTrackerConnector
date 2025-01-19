@@ -36,6 +36,17 @@ const HomePage = async () => {
                                 <Link href="/auth/login">Learn More</Link>
                             </Button>
                         </div>
+
+                        <div className="mt-12 text-sm text-gray-500">
+                            <p>Created by{' '}
+                                <a href="https://www.dineshchhantyal.com" 
+                                   className="text-orange-600 hover:text-orange-700 font-medium"
+                                   target="_blank" 
+                                   rel="noopener noreferrer">
+                                    Dinesh Chhantyal
+                                </a>
+                            </p>
+                        </div>
                     </div>
                 </main>
             </div>

@@ -20,16 +20,22 @@ export function Header({ user }: HeaderProps) {
         <div className="flex items-center space-x-4">
           <Link href="/">
             <h1 className="text-xl font-bold text-primary">TimeClock </h1>
-            <p className='text-sm text-gray-500'>
-              by Dinesh Chhantyal
+            <p
+              className='text-sm text-gray-500'
+            >by{' '}
+              <span
+                className="text-orange-600 hover:text-orange-700 font-medium"
+              >
+                Dinesh Chhantyal
+              </span>
             </p>
           </Link>
-         
+
         </div>
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-             <NotificationsPopover />
+              <NotificationsPopover />
               <UserButton />
             </>
           ) : (
