@@ -111,7 +111,39 @@ export function TimeEntryList() {
               {loading ? <LoadingSpinner /> : null}
               Submit for Approval
             </Button>
-            <Button onClick={() => window.print()} variant="outline">
+            <Button
+              onClick={() => {
+                const printContent = document.getElementById('time-entries')?.innerHTML;
+                if (printContent) {
+                  const printWindow = window.open('', '_blank');
+                  if (printWindow) {
+                    const baseUrl = window.location.origin;
+                    printWindow.document.write(`
+                      <html>
+                        <head>
+                          <title>Time Entries</title>
+                          <link rel="stylesheet" href="${baseUrl}/styles.css" />
+                          <style>
+                            body { padding: 20px; }
+                            @media print {
+                              body { margin: 0; padding: 15px; }
+                              table { width: 100%; border-collapse: collapse; }
+                              td, th { padding: 8px; border: 1px solid #ddd; }
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          ${printContent}
+                        </body>
+                      </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                  }
+                }
+              }}
+              variant="outline"
+            >
               Print
             </Button>
           </div>
@@ -133,7 +165,7 @@ export function TimeEntryList() {
             />
           </div>
 
-          <TabsContent value="table" className="w-full">
+          <TabsContent value="table" className="w-full" id="time-entries">
             <Table>
               <TableHeader>
                 <TableRow>
