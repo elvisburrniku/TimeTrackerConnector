@@ -13,7 +13,7 @@ import {
   getWeeklyReport,
   approveTimeEntry,
   discardTimeEntry,
-  approveAllWeeklyTimeEntries
+  approvalAllByDepartment
 } from '@/actions/time-entry'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { TimeEntryTable } from './TimeEntryTable'
@@ -154,7 +154,7 @@ export default function TimeSheetManagement({ userId, employeeDepartments : _e }
     }
 
     setLoading(true)
-    const response = await approveAllWeeklyTimeEntries(userId, departmentId)
+    const response = await approvalAllByDepartment(userId, departmentId)
 
     if (response.data) {
       setEntriesByDepartment(prev => ({
@@ -284,7 +284,7 @@ function DepartmentTimesheet({
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            Approve All Weekly Entries
+            Approve All
           </Button>
         )}
       </div>

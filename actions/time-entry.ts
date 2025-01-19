@@ -56,6 +56,15 @@ export const approveAllWeeklyTimeEntries = async (userId: string, departmentId: 
   }
 };
 
+export const approvalAllByDepartment = async (userId: string, departmentId: string) => {
+  const data = await timeEntryService.approveAllByDepartment(userId, departmentId);
+  if (data) {
+    return { success: "All time entries approved successfully", data };
+  } else {
+    return { error: "Failed to approve all time entries" };
+  }
+}
+
 export const getWeeklyReport = async (userId: string, departmentId: string) => {
   const data = await timeEntryService.getWeeklyReport(userId, departmentId);
   if (data) {

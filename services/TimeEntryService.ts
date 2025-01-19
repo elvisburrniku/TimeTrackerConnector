@@ -308,6 +308,50 @@ class TimeEntryService {
     }
   }
 
+  async approveAllByDepartment(userId: string, departmentId: string): Promise<TimeEntry[] | null> {
+    try {
+      const permittedDepartments = await departmentService.getUserPermittedDepartments(userId);
+
+      if (!permittedDepartments || !permittedDepartments.some(dept => dept.id === departmentId)) {
+        console.error("Permission denied.");
+        return null;
+      }
+
+      const timeEntries = await db.timeEntry.findMany({
+        where: {
+          departmentId,
+          OR: [{ status: TimeEntryStatus.PENDING },
+          { status: TimeEntryStatus.NOTSUBMITTED }
+          ]
+        },
+      });
+
+      if (!timeEntries) {
+        console.error("No time entries found.");
+        return null;
+      }
+
+      await db.timeEntry.updateMany({
+        where: {
+          departmentId,
+          OR: [{ status: TimeEntryStatus.PENDING },
+          { status: TimeEntryStatus.NOTSUBMITTED }
+          ]
+        },
+        data: {
+          status: TimeEntryStatus.APPROVED,
+          approvedById: userId,
+          approvedAt: new Date(),
+        },
+      });
+
+      return timeEntries;
+    } catch (error) {
+      console.error("Error approving all time entries by department:", error);
+      return null;
+    }
+  }
+
 }
 
 export const timeEntryService = new TimeEntryService();
