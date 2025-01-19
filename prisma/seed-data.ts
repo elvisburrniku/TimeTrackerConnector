@@ -32,7 +32,7 @@ export const USERS = [
     role: UserRole.USER
   },
   {
-    email: 'manager@gtimeclock.com',
+    email: 'manager@timeclock.com',
     name: 'Manager User',
     password: 'manager123',
     role: UserRole.USER

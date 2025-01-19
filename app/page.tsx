@@ -26,7 +26,7 @@ const HomePage = async () => {
                         </h1>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
 
-                            Manage your team's time tracking, attendance, and work schedules all in one place.
+                            Manage your team&apos;s time tracking, attendance, and work schedules all in one place.
                         </p>
                         <div className="flex justify-center gap-4 pt-6">
                             <Button size="lg" className="bg-orange-600 hover:bg-orange-700">
