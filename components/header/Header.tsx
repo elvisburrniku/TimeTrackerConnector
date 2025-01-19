@@ -48,9 +48,6 @@ export function Header({ user }: HeaderProps) {
               </RegisterButton>
             </>
           )}
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     </header>

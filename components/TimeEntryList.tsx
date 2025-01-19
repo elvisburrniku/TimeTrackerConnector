@@ -45,9 +45,9 @@ export function TimeEntryList() {
       const totalHours = entries.reduce((acc, entry) => acc + Number(entry.hours), 0)
       return {
         week: format(new Date(week), 'MMM d'),
-        hours: totalHours,
+        hours: totalHours.toFixed(2),
         overtime: Math.max(0, totalHours - 40),
-        regular: Math.min(totalHours, 40)
+        regular: Math.min(totalHours, 40).toFixed(2)
       }
     })
   }, [weeklyData])
