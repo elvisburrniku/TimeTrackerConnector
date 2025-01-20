@@ -113,7 +113,7 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
             <CardContent>
                 <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg p-px">
                     {daysOfWeek.map(day => (
-                        <div key={day} className="text-xs font-medium text-center p-2 bg-white">
+                        <div key={day} className="text-xs font-medium text-center py-2 bg-white">
                             {day}
                         </div>
                     ))}
