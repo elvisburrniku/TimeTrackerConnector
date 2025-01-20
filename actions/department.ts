@@ -73,6 +73,7 @@ export const getAllDepartments = async (userId: string) => {
     return { error: "User ID is required." };
   }
   const departments = await departmentService.getUserPermittedDepartments(userId);
+  console.log(departments);
   if (departments) {
     return { departments: departments, success: "Departments retrieved successfully!" };
   } else {

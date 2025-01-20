@@ -155,18 +155,22 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                         </DropdownMenu>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                                        <div className="p-4 bg-orange-50 rounded-lg">
-                                            <p className="text-sm text-orange-600 mb-1">Employees</p>
-                                            <p className="text-2xl font-bold">{department.employeeCount}</p>
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                                        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all">
+                                            <p className="text-sm text-orange-700 font-medium mb-1">Employees</p>
+                                            <p className="text-2xl font-bold text-orange-900">{department.employeeCount}</p>
                                         </div>
-                                        <div className="p-4 bg-blue-50 rounded-lg">
-                                            <p className="text-sm text-blue-600 mb-1">Budget</p>
-                                            <p className="text-2xl font-bold">${department.totalCost.toString()}</p>
+                                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all">
+                                            <p className="text-sm text-blue-700 font-medium mb-1">Budget</p>
+                                            <p className="text-2xl font-bold text-blue-900">${department.totalCost.toLocaleString()}</p>
                                         </div>
-                                        <div className="p-4 bg-green-50 rounded-lg">
-                                            <p className="text-sm text-green-600 mb-1">Active Projects</p>
-                                            <p className="text-2xl font-bold">3</p>
+                                        <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 shadow-sm hover:shadow-md transition-all">
+                                            <p className="text-sm text-purple-700 font-medium mb-1">Approved Hours</p>
+                                            <p className="text-2xl font-bold text-purple-900">{department.approvedHours}</p>
+                                        </div>
+                                        <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 shadow-sm hover:shadow-md transition-all">
+                                            <p className="text-sm text-green-700 font-medium mb-1">Total Hours</p>
+                                            <p className="text-2xl font-bold text-green-900">{department.totalHours}</p>
                                         </div>
                                     </div>
 
@@ -266,5 +270,7 @@ export default DepartmentManagement;
 
 export interface DepartmentViewInterface extends Department {
     employeeCount: number,
-    totalCost: number
+    totalCost: number,
+    approvedHours: number
+    totalHours: number
 }

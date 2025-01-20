@@ -154,7 +154,11 @@ class DepartmentService {
       }
 
       department.employeeCount = await this.getTotalEmployeeCount(departmentId);
-      department.totalCost = await this.getEmployeeCost(departmentId);
+      const costs = await this.getEmployeeCost(departmentId);
+      department.totalCost = costs.totalCost;
+      department.totalHours = costs.totalHours;
+      department.approvedHours = costs.approvedHours;
+
 
       return department;
     } catch (error) {
@@ -184,9 +188,9 @@ class DepartmentService {
         });
 
         // 3. Check permissions
-        const hasPermission = 
-          user.role === UserRole.ADMIN || 
-          userDepartmentRole?.role === EmployeeDepartmentRole.MANAGER || 
+        const hasPermission =
+          user.role === UserRole.ADMIN ||
+          userDepartmentRole?.role === EmployeeDepartmentRole.MANAGER ||
           userDepartmentRole?.role === EmployeeDepartmentRole.ADMIN;
 
         if (!hasPermission) {
@@ -231,7 +235,10 @@ class DepartmentService {
 
         // 7. Update department stats
         department.employeeCount = await this.getTotalEmployeeCount(departmentId);
-        department.totalCost = await this.getEmployeeCost(departmentId);
+        const costs = await this.getEmployeeCost(departmentId);
+        department.totalCost = costs.totalCost;
+        department.totalHours = costs.totalHours;
+        department.approvedHours = costs.approvedHours;
 
         return department;
       });
@@ -253,30 +260,107 @@ class DepartmentService {
     }
   }
 
-  async getEmployeeCost(departmentId: string): Promise<number> {
+  async getEmployeeCost(departmentId: string): Promise<{
+    totalHours: number,
+    approvedHours: number,
+    totalCost: number,
+  }> {
     try {
-      const employees = await db.employeeDepartment.findMany({
-        where: { departmentId },
-        select: { hourlyRate: true },
+      const department = await db.department.findFirst({
+        where: { id: departmentId },
+        select: {
+          id: true,
+          name: true,
+          info: true,
+          employees: {
+            select: {
+              hourlyRate: true,
+            }
+          },
+          timeEntries: {
+            select: {
+              hours: true,
+              status: true,
+            }
+          }
+        }
       });
-      const totalCost = employees.reduce((acc, emp) => acc.plus(emp.hourlyRate), new Decimal(0));
-      return totalCost.toNumber();
+
+      console.log(department);
+
+      let approvedHours = 0, totalHours = 0;
+      if (department?.timeEntries) {
+        for (const entry of department.timeEntries) {
+          const hours = Number(entry.hours);
+          totalHours += hours;
+          if (entry.status === 'APPROVED') {
+            approvedHours += hours;
+          }
+        }
+      }
+      const totalCost = department?.timeEntries.reduce((acc, entry) => {
+        if (entry.status !== 'APPROVED') return acc;
+
+        const hours = Number(entry.hours);
+        const rate = Number(department.employees[0]?.hourlyRate || 0);
+
+        // Calculate regular and overtime hours
+        const regularHours = Math.min(hours, 40);
+        const overtimeHours = Math.max(0, hours - 40);
+
+        // Calculate cost with overtime at 1.5x
+        const regularPay = regularHours * rate;
+        const overtimePay = overtimeHours * (rate * 1.5);
+
+        return acc + regularPay + overtimePay;
+      }, 0) ?? 0;
+
+
+      return {
+        totalHours: Number(totalHours.toFixed(2)),
+        approvedHours: Number(approvedHours.toFixed(2)),
+        totalCost: Number(totalCost.toFixed(2)),
+      };
     } catch (error) {
       console.error("Error getting employee cost:", error);
-      return 0;
+      return {
+        totalHours: 0,
+        approvedHours: 0,
+        totalCost: 0,
+      }
     }
   }
 
   async getAllDepartments(): Promise<DepartmentViewInterface[] | null> {
     try {
-      const departments = await db.department.findMany() as DepartmentViewInterface[];
+      const departments = await db.department.findMany({
+        select: {
+          id: true,
+          name: true,
+          info: true,
+          createdAt: true,
+          updatedAt: true,
+          employees: {
+            select: {
+              hourlyRate: true,
+            }
+          },
+          timeEntries: {
+            select: {
+              hours: true,
+              status: true,
+            }
+          }
+        }
+      });
 
-      for (const department of departments) {
-        department.employeeCount = await this.getTotalEmployeeCount(department.id);
-        department.totalCost = await this.getEmployeeCost(department.id);
-      }
-
-      return departments;
+      return departments.map(dept => ({
+        ...dept,
+        employeeCount: dept.employees.length,
+        totalCost: dept.employees.reduce((acc, emp) => acc + Number(emp.hourlyRate), 0),
+        totalHours: dept.timeEntries.reduce((acc, entry) => acc + Number(entry.hours), 0),
+        approvedHours: dept.timeEntries.reduce((acc, entry) => entry.status === 'APPROVED' ? acc + Number(entry.hours) : acc, 0),
+      }));
     } catch (error) {
       console.error("Error getting all departments:", error);
       return null;
@@ -305,7 +389,9 @@ class DepartmentService {
 
       for (const department of depertmentsInfo) {
         department.employeeCount = await this.getTotalEmployeeCount(department.id);
-        department.totalCost = await this.getEmployeeCost(department.id);
+        const costs = await this.getEmployeeCost(department.id);
+        department.totalCost = costs.totalHours;
+        department.approvedHours = costs.approvedHours;
       }
 
       return depertmentsInfo
@@ -374,7 +460,10 @@ class DepartmentService {
 
       for (const department of depertmentsInfo) {
         department.employeeCount = await this.getTotalEmployeeCount(department.id);
-        department.totalCost = await this.getEmployeeCost(department.id);
+        const costs = await this.getEmployeeCost(department.id);
+        department.totalHours = costs.totalHours;
+        department.approvedHours = costs.approvedHours;
+        department.totalCost = costs.totalCost;
       }
 
       return depertmentsInfo
@@ -431,7 +520,7 @@ class DepartmentService {
       const employee = await db.employeeDepartment.delete({
         where: { id: roleId },
       });
-      
+
       return employee;
     } catch (error) {
       console.error("Error removing employee from department by role id:", error);
