@@ -101,7 +101,7 @@ export function UpdateEmployeeDialog({ isOpen, onOpenChange, employee, onUpdate 
               Position
             </label>
             <Input
-              value={position}
+              value={position ?? ""}
               onChange={(e) => setPosition(e.target.value)}
               placeholder="e.g. Shift Supervisor, Sales Associate"
             />

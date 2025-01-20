@@ -14,6 +14,8 @@ import AddEmployeeToDepartmentDialog from './AddEmployeeToDepartmentDialog'
 import { AddDepartmentDialog } from './AddDepartmentDialog'
 import DepartmentEmployeeListDialog from './DepartmentEmployeeListDialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { EditDepartmentDialog } from './EditDepartmentDialog'
+
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
 }
@@ -27,6 +29,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false)
     const [isAddDepartmentDialogOpen, setIsAddDepartmentDialogOpen] = useState(false)
     const [isEmployeeListDialogOpen, setIsEmployeeListDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const { toast } = useToast()
     const user = useCurrentUser()
 
@@ -71,6 +74,11 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
         }
     }
 
+    const handleUpdateDepartment = (updated: Department) => {
+        setDepartments(departments.map(dept => 
+            dept.id === updated.id ? { ...dept, ...updated } : dept
+        ))
+    }
 
     return (
         <Card className="w-full">
@@ -130,7 +138,10 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                                     
                                                     View Employees
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => { 
+                                                    setSelectedDepartment(department)
+                                                    setIsEditDialogOpen(true)
+                                                }}>
                                                     <Edit className="w-4 h-4 mr-2" />
                                                     Edit Department
                                                 </DropdownMenuItem>
@@ -230,7 +241,14 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
             }
             <AddDepartmentDialog isOpen={isAddDepartmentDialogOpen} onClose={() => setIsAddDepartmentDialogOpen(false)} setDepartments={
                 setDepartments} />
-
+            {selectedDepartment && (
+                <EditDepartmentDialog
+                    department={selectedDepartment}
+                    isOpen={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                    onUpdate={handleUpdateDepartment}
+                />
+            )}
         </Card>
     )
 }

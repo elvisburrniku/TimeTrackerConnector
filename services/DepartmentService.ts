@@ -53,7 +53,7 @@ class DepartmentService {
     }
   }
 
-  async updateDepartment(userId: string, id: string, name: string): Promise<Department | null> {
+  async updateDepartment(userId: string, id: string, name: string, info?: string): Promise<Department | null> {
     const user = await db.user.findUnique({ where: { id: userId } });
     const userDeparmentRole = await db.employeeDepartment.findFirst({
       where: {
@@ -70,7 +70,7 @@ class DepartmentService {
     try {
       const department = await db.department.update({
         where: { id },
-        data: { name },
+        data: { name, info },
       });
       return department;
     } catch (error) {

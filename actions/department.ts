@@ -12,6 +12,15 @@ export const createDepartment = async (userId: string, name: string, info?: stri
   }
 };
 
+export const updateDepartment = async (userId: string, id: string, name: string, info ?: string) => {
+  const department = await departmentService.updateDepartment(userId, id, name, info);
+  if (department) {
+    return { success: "Department updated successfully!", department };
+  } else {
+    return { error: "Failed to update department." };
+  }
+}
+
 export const deleteDepartment = async (userId: string, id: string) => {
   const department = await departmentService.deleteDepartment(userId, id);
   if (department) {
@@ -49,24 +58,24 @@ export const removeEmployeeFromDepartmentByRoleId = async (roleId: string) => {
 }
 
 export const getAllDepartments = async (userId: string) => {
-  if (!userId){
+  if (!userId) {
     return { error: "User ID is required." };
   }
   const departments = await departmentService.getUserPermittedDepartments(userId);
   if (departments) {
-    return { departments:departments, success: "Departments retrieved successfully!" };
+    return { departments: departments, success: "Departments retrieved successfully!" };
   } else {
     return { error: "Failed to get departments." };
   }
 }
 
 export const getPermittedDepartmentsInfo = async (userId: string) => {
-  if (!userId){
+  if (!userId) {
     return { error: "User ID is required." };
   }
   const departments = await departmentService.getUserPermittedDepartmentsInfo(userId);
   if (departments) {
-    return { departments:departments, success: "Departments retrieved successfully!" };
+    return { departments: departments, success: "Departments retrieved successfully!" };
   } else {
     return { error: "Failed to get departments." };
   }
@@ -75,40 +84,42 @@ export const getPermittedDepartmentsInfo = async (userId: string) => {
 export const getAllDepartmentsInfo = async () => {
   const departments = await departmentService.getAllDepartmentsInfo();
   if (departments) {
-    return { departments:departments, success: "Departments retrieved successfully!" };
+    return { departments: departments, success: "Departments retrieved successfully!" };
   } else {
     return { error: "Failed to get departments." };
   }
 }
 
 export const getDepartmentEmployees = async (userId: string, departmentId: string) => {
-  if (!userId){
+  if (!userId) {
     return { error: "User ID is required." };
   }
 
   const permittedDepartments = await departmentService.getUserPermittedDepartments(userId);
 
-  if (!permittedDepartments || !permittedDepartments.some(department => department.id === departmentId)){
+  if (!permittedDepartments || !permittedDepartments.some(department => department.id === departmentId)) {
     return { error: "User does not have permission to view this department." };
   }
 
   const employees = await departmentService.getDeparmentEmployees(departmentId);
   if (employees) {
-    return { employees:employees, success: "Employees retrieved successfully!" };
+    return { employees: employees, success: "Employees retrieved successfully!" };
   } else {
     return { error: "Failed to get employees." };
   }
 }
 
 export const getEmployeePermittedDepartmentsInfo = async (userId: string, employeeId: string) => {
-  if (!userId){
+  if (!userId) {
     return { error: "User ID is required." };
   }
 
   const departments = await departmentService.getEmployeePermittedDepartmentsInfo(employeeId);
   if (departments) {
-    return { departments:departments, success: "Departments retrieved successfully!" };
+    return { departments: departments, success: "Departments retrieved successfully!" };
   } else {
     return { error: "Failed to get departments." };
   }
 }
+
+
