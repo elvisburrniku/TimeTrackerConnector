@@ -35,43 +35,75 @@ Manager:   manager@timeclock.com / manager123
 - View department schedules
 - Manage employee assignments
 
-## Features
+## Core Features
 
-### Authentication & Security
-- Email/Password and Google OAuth authentication
-- Email verification via Resend
-- Protected routes and role-based access
+### 🔐 Authentication & Authorization
+- Email/password with 2FA support
+- Social login integration (Google OAuth)
+- Role-based access control
+- Session management
+- Password reset functionality
 
-### Department Management
-- Create and manage departments
-- Assign managers and employees
-- Set hourly rates and positions
+### ⏰ Time Management
+- Advanced clock in/out system
+- Break management
+- Overtime tracking
+- Location verification
+- Real-time status updates
+- Multi-department time off requests
 
-### Time Tracking
-- Clock in/out functionality
-- Overtime calculations
-- Multiple department assignments
+### 👥 Department Management
+- Department creation and configuration
+- Employee assignment and roles
+- Budget tracking and analytics
+- Resource allocation
+- Performance monitoring
 
-### Timesheet Management
-- Weekly timesheet submissions
-- Manager approval workflow
-- Department-wise reports
-- Pay calculation
+### 👤 Employee Management
+- Comprehensive profile management
+- Rate and position settings
+- Department transfers
+- Attendance tracking
+- Performance metrics
 
-### Notifications
-- Schedule updates
-- Timesheet approval status
-- Clock in/out confirmations
+### 📅 Scheduling
+- Dynamic shift creation
+- Weekly schedule management
+- Conflict detection
+- Time off integration
+- Calendar view with real-time updates
+
+### 📊 Reports & Analytics
+- Department cost analysis
+- Hours and attendance tracking
+- Employee statistics
+- Time off patterns
+- Performance reporting
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL
-- **Authentication**: Auth.js v5
-- **Email**: Resend
-- **State Management**: React Context + Hooks
-- **Deployment**: Vercel
+### Frontend
+- Next.js 14 App Router
+- React Server Components
+- TypeScript
+- TailwindCSS
+- shadcn/ui components
+- Framer Motion animations
+
+### Backend
+- Next.js API Routes
+- Server Actions
+- Prisma ORM
+- PostgreSQL
+- Auth.js v5
+- Resend for emails
+
+### Infrastructure
+- Vercel deployment
+- PostgreSQL database
+- Real-time updates
+- PWA support
+- Mobile responsive design
 
 ## Setup
 
@@ -88,11 +120,29 @@ Manager:   manager@timeclock.com / manager123
    npm install
    ```
 
-3. Configure environment variables for authentication providers and database connection:
+3. Set up environment variables:
 
-   - Google OAuth
-   - PostgreSQL connection string
-   - Resend API key for email services
+   ```bash
+   # Copy example env file
+   cp .env.example .env
+   ```
+
+   Configure the following in `.env`:
+   ```bash
+   # Application
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   AUTH_SECRET="your_auth_secret"
+
+   # Authentication
+   GOOGLE_CLIENT_ID="your_google_client_id"
+   GOOGLE_CLIENT_SECRET="your_google_client_secret"
+
+   # Database
+   DATABASE_URL="postgresql://your_database_owner:your_password@your_host/your_database?sslmode=require"
+
+   # Email
+   RESEND_API_KEY="your_resend_api_key"
+   ```
 
 4. Run Prisma migration:
 
@@ -104,4 +154,29 @@ Manager:   manager@timeclock.com / manager123
    ```bash
    npm run dev
    ```
-6. Open localhost:3000
+Visit [http://localhost:3000](http://localhost:3000) to view the application in development mode.
+
+
+## Development
+
+## Deployment
+### Vercel Deploy
+1. Set all required environment variables in Vercel dashboard
+2. Configure authentication providers
+3. Set up database connection
+
+## Contributing
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Open pull request
+
+## License
+MIT License - see LICENSE file
+
+## Author
+Dinesh Chhantyal
+
+Website: [dineshchhantyal.com](https://dineshchhantyal.com)
+GitHub: [@dineshchhantyal](https://github.com/dineshchhantyal)
