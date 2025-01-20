@@ -1,3 +1,5 @@
+"use server";
+
 import { timeOffRequestService } from '@/services/TimeOffRequestService'
 import { TimeOffRequestType } from '@prisma/client'
 
@@ -20,6 +22,7 @@ export async function requestTimeOff(
     )
     return { success: "Time off request submitted successfully", data: requests }
   } catch (error) {
+    console.error('Failed to submit time off request:', error)
     return { error: "Failed to submit time off request" }
   }
 }
@@ -58,5 +61,14 @@ export async function getTimeOffRequestsByDeparmentId(departmentId: string) {
     return { success: "Time off requests fetched successfully", data: requests }
   } catch (error) {
     return { error: "Failed to fetch time off requests" }
+  }
+}
+
+export async function cancelTimeOffRequest(requestId: string) {
+  try {
+    const request = await timeOffRequestService.cancelTimeOffRequest(requestId)
+    return { success: "Time off request cancelled", data: request }
+  } catch (error) {
+    return { error: "Failed to cancel time off request" }
   }
 }

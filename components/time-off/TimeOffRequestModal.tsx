@@ -2,7 +2,6 @@
 
 import { Department } from '@prisma/client'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
 import { TimeOffRequestForm } from '../time-off/TimeOffRequestForm'
 
 interface TimeOffRequestModalProps {

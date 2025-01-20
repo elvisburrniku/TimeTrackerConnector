@@ -265,6 +265,7 @@ enum EmployeeDepartmentRole {
 
 enum TimeEntryStatus {
   NOTSUBMITTED
+  CANCELLED
   PENDING
   APPROVED
   REJECTED

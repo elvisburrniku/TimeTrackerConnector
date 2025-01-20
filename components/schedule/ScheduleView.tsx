@@ -11,7 +11,7 @@ import { Badge } from "../ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import {  useEffect, useMemo, useState } from "react"
 import { Department } from "@prisma/client"
-import { getSchedule } from "@/actions/schedule"
+import { getScheduleByUserIdAndDepartmentId } from "@/actions/schedule"
 
 
 
@@ -30,7 +30,7 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
             try {
                 setLoading(true)
                 const schedulePromises = departments.map(async (dept) => {
-                    const response = await getSchedule(userId, dept.id)
+                    const response = await getScheduleByUserIdAndDepartmentId(userId, dept.id)
                     if (response.data) {
                         return {
                             ...response.data,

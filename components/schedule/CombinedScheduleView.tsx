@@ -5,27 +5,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { format, isSameDay } from 'date-fns'
+import { format, isSameDay, isWithinInterval } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { Department } from '@prisma/client'
-import { getSchedule } from '@/actions/schedule'
+import { Department, TimeOffRequest } from '@prisma/client'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
 import { ScheduleWithDepartment } from './ScheduleView'
 import { Badge } from '../ui/badge'
 import { TimeOffRequestModal } from '../time-off/TimeOffRequestModal'
+import { cancelTimeOffRequest, fetchTimeOffRequestsByUserId } from '@/actions/time-off'
+import { getScheduleByUserIdAndDepartmentId } from '@/actions/schedule'
+import { TimeOffRequestViewCard } from '../time-off/TimeOffRequestViewCard'
+import { useToast } from '@/hooks/use-toast'
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 
 interface CombinedScheduleViewProps {
     departments: Department[]
     userId: string
 }
 
+// Update CalendarDay interface
 type CalendarDay = {
     date: Date
     isCurrentMonth: boolean
     isToday: boolean
     status?: 'scheduled' | 'leave' | 'holiday'
+    timeOffRequest?: TimeOffRequest
 }
 
 export function CombinedScheduleView({ departments, userId }: CombinedScheduleViewProps) {
@@ -34,20 +40,34 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
     const [schedules, setSchedules] = useState<ScheduleWithDepartment[]>([])
     const [isTimeOffModalOpen, setIsTimeOffModalOpen] = useState(false)
     const [selectedDepartments, setSelectedDepartments] = useState<Department[]>([])
+    const [TimeOffRequests, setTimeOffRequests] = useState<TimeOffRequest[]>([])
+    const { toast } = useToast()
+
 
     async function fetchSchedules() {
         if (!departments.length || !userId) return
         try {
             const results = await Promise.all(
                 departments.map(async (dept) => {
-                    const response = await getSchedule(userId, dept.id)
+                    const response = await getScheduleByUserIdAndDepartmentId(userId, dept.id)
                     return response.data ? {
                         ...response.data,
                         department: { id: dept.id, name: dept.name }
                     } : null
                 })
             )
-            setSchedules(results.filter((s): s is ScheduleWithDepartment => s !== null))
+            setSchedules(results.filter((s): s is NonNullable<typeof s> => s !== null))
+        } catch (error) {
+            console.error('Failed to fetch schedules:', error)
+        }
+    }
+
+    async function fetchTimeOffRequests() {
+        if (!departments.length || !userId) return
+        try {
+            const results = await fetchTimeOffRequestsByUserId(userId)
+            if (!results.data) return null
+            setTimeOffRequests(results.data)
         } catch (error) {
             console.error('Failed to fetch schedules:', error)
         }
@@ -56,6 +76,11 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
     // Fetch schedules effect
     useEffect(() => {
         fetchSchedules()
+    }, [departments, userId])
+
+    // Fetch time off requests effect
+    useEffect(() => {
+        fetchTimeOffRequests()
     }, [departments, userId])
 
     const getHoursWorked = (date: Date) => {
@@ -86,11 +111,21 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                 const hasShifts = schedules.some(s =>
                     s.schedules.some(shift => shift.dayOfWeek === date.getDay())
                 )
+
+                // Find time off request for this date
+                const timeOffRequest = TimeOffRequests.find(request =>
+                    isWithinInterval(date, {
+                        start: new Date(request.startDate),
+                        end: new Date(request.endDate)
+                    })
+                )
+
                 return {
                     date,
                     isCurrentMonth: true,
                     isToday: isSameDay(date, today),
-                    status: hasShifts ? 'scheduled' : undefined
+                    status: timeOffRequest ? 'leave' : hasShifts ? 'scheduled' : undefined,
+                    timeOffRequest
                 }
             }),
             // Next month
@@ -100,6 +135,30 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                 isToday: false
             }))
         ]
+    }
+
+    const handleUserTimeOffRequest = async (timeOffRequestId?: string) => {
+        if (!timeOffRequestId) return
+        try {
+            const resp = await cancelTimeOffRequest(timeOffRequestId)
+
+            if (resp.error) {
+                toast({
+                    title: 'Error',
+                    description: resp.error,
+                })
+                return
+            }
+            if (resp.success) {
+                toast({
+                    title: 'Success',
+                    description: resp.success,
+                })
+                fetchTimeOffRequests()
+            }
+        } catch (error) {
+            console.error('Failed to delete time off request:', error)
+        }
     }
 
     return (
@@ -122,115 +181,158 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                             {day}
                         </div>
                     ))}
-                    {getCalendarDays().map((day) => {
-                        const hasSchedule = schedules.some(s =>
-                            s.schedules.some(shift => shift.dayOfWeek === day.date.getDay())
-                        )
+                    {getCalendarDays().map((day) => (
+                        <Dialog key={day.date.toISOString()}>
+                            <DialogTrigger asChild>
+                                <div className={cn(
+                                    "min-h-[40px] bg-white hover:bg-gray-50 cursor-pointer p-1",
+                                    "flex flex-col justify-between",
+                                    !day.isCurrentMonth && "text-gray-400",
+                                    day.isToday && "bg-orange-50 border-orange-200",
+                                    day.timeOffRequest && "bg-red-100 border border-red-300",
+                                )}>
+                                    <span className="text-sm">{format(day.date, 'd')}</span>
 
-                        return (
-                            <Dialog key={day.date.toISOString()}>
-                                <DialogTrigger asChild>
-                                    <div className={cn(
-                                        "h-10 bg-white hover:bg-gray-50 cursor-pointer flex items-start justify-start",
-                                        !day.isCurrentMonth && "text-gray-400",
-                                        day.isToday && "bg-orange-200 border-orange-400",
-                                        hasSchedule && "font-medium"
-                                    )}>
-                                        <span className="text-sm m-1 text-center">{format(day.date, 'd')}</span>
-                                    </div>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>{format(day.date, 'EEEE, MMMM d')}</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4 mt-4">
-                                        {schedules.length > 0 ? (
-                                            schedules.some(({ schedules }) =>
-                                                schedules.some(s => s.dayOfWeek === day.date.getDay())
-                                            ) ? (
-                                                schedules.map(({ department, schedules }) => (
-                                                    <div>
-                                                        <div key={department.id} className="space-y-2">
-                                                            <h4 className="font-medium">{department.name}</h4>
-                                                            {schedules.filter(s => s.dayOfWeek === day.date.getDay()).map(shift => (
-                                                                <div key={shift.id} className="flex justify-between items-center text-sm bg-orange-50 p-2 rounded">
-                                                                    <span>{format(new Date(shift.startTime), 'h:mm a')} - {format(new Date(shift.endTime), 'h:mm a')}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                        {/* Time Off Request Section */}
-                                                        {day.isCurrentMonth && day.date > new Date() && (
-                                                            <div className="space-y-4 border-t pt-4">
-                                                                <div className="flex items-center justify-between">
-                                                                    <h4 className="font-medium">Request Time Off</h4>
-                                                                    <Badge variant="outline">
-                                                                        {format(day.date, 'MMM d, yyyy')}
-                                                                    </Badge>
-                                                                </div>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {departments.map(dept => (
-                                                                        <Button
-                                                                            key={dept.id}
-                                                                            variant="outline"
-                                                                            className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                                                                            onClick={() => {
-                                                                                setSelectedDepartments([dept])
-                                                                                setIsTimeOffModalOpen(true)
-                                                                            }}
-                                                                        >
-                                                                            {dept.name}
-                                                                        </Button>
-                                                                    ))}
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                                                                        onClick={() => {
-                                                                            setSelectedDepartments(departments)
-                                                                            setIsTimeOffModalOpen(true)
-                                                                        }}
-                                                                    >
-                                                                        Request for All Departments
-                                                                    </Button>
-                                                                </div>
+                                </div>
+                            </DialogTrigger>
 
-                                                                <TimeOffRequestModal
-                                                                    isOpen={isTimeOffModalOpen}
-                                                                    onClose={() => setIsTimeOffModalOpen(false)}
-                                                                    selectedDepartments={selectedDepartments}
-                                                                    userId={userId}
-                                                                    defaultDate={day.date}
-                                                                    onSuccess={fetchSchedules}
-                                                                />
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{format(day.date, 'EEEE, MMMM d')}</DialogTitle>
+                                </DialogHeader>
+
+                                {/* Show Time Off Request if exists */}
+                                {day.timeOffRequest && (
+                                    <TimeOffRequestViewCard timeOffRequest={day.timeOffRequest} onDeleted={() => handleUserTimeOffRequest(day.timeOffRequest?.id)} />
+                                )}
+
+                                {/* Existing schedule display */}
+                                {schedules.length > 0 && (
+                                    schedules.some(({ schedules }) =>
+                                        schedules.some(s => s.dayOfWeek === day.date.getDay())
+                                    ) ? (
+                                        <div className='space-y-4'>
+                                            {schedules.map(({ department, schedules }) => (
+                                                <div key={department.id}>
+                                                    <div className="space-y-2">
+                                                        <h4 className="font-medium">{department.name}</h4>
+                                                        {schedules.filter(s => s.dayOfWeek === day.date.getDay()).map(shift => (
+                                                            <div key={shift.id} className="flex justify-between items-center text-sm bg-orange-50 p-2 rounded">
+                                                                <span>{format(new Date(shift.startTime), 'h:mm a')} - {format(new Date(shift.endTime), 'h:mm a')}</span>
                                                             </div>
-                                                        )}
+                                                        ))}
                                                     </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-sm text-gray-500 text-center py-2">
-                                                    No schedule for this day
+
                                                 </div>
-                                            )
-                                        ) : (
-                                            <div className="text-sm text-gray-500 text-center py-2">
-                                                No schedules available
-                                            </div>
-                                        )}
+                                            ))}
+                                            {/* Time Off Request Section */}
+                                            {day.isCurrentMonth && day.date > new Date() && (
+                                                <div className="space-y-4 border-t pt-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="font-medium">Request Time Off</h4>
+                                                        <Badge variant="outline">
+                                                            {format(day.date, 'MMM d, yyyy')}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {departments.map(dept => (
+                                                            <Button
+                                                                key={dept.id}
+                                                                variant="outline"
+                                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                                onClick={() => {
+                                                                    setSelectedDepartments([dept])
+                                                                    setIsTimeOffModalOpen(true)
+                                                                }}
+                                                            >
+                                                                {dept.name}
+                                                            </Button>
+                                                        ))}
+                                                        <Button
+                                                            variant="outline"
+                                                            className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                            onClick={() => {
+                                                                setSelectedDepartments(departments)
+                                                                setIsTimeOffModalOpen(true)
+                                                            }}
+                                                        >
+                                                            Request for All Departments
+                                                        </Button>
+                                                    </div>
 
+                                                    <TimeOffRequestModal
+                                                        isOpen={isTimeOffModalOpen}
+                                                        onClose={() => setIsTimeOffModalOpen(false)}
+                                                        selectedDepartments={selectedDepartments}
+                                                        userId={userId}
+                                                        defaultDate={day.date}
+                                                        onSuccess={fetchSchedules}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="text-sm text-gray-500 text-center py-2">
+                                            No schedule for this day
+                                        </div>
+                                    )
+                                )}
 
+                                {/* Time Off Request Form */}
+                                {day.isCurrentMonth && day.date > new Date() && !day.timeOffRequest && (
+                                    <div className="space-y-4 border-t pt-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-medium">Request Time Off</h4>
+                                            <Badge variant="outline">
+                                                {format(day.date, 'MMM d, yyyy')}
+                                            </Badge>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {departments.map(dept => (
+                                                <Button
+                                                    key={dept.id}
+                                                    variant="outline"
+                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                    onClick={() => {
+                                                        setSelectedDepartments([dept])
+                                                        setIsTimeOffModalOpen(true)
+                                                    }}
+                                                >
+                                                    {dept.name}
+                                                </Button>
+                                            ))}
+                                            <Button
+                                                variant="outline"
+                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                onClick={() => {
+                                                    setSelectedDepartments(departments)
+                                                    setIsTimeOffModalOpen(true)
+                                                }}
+                                            >
+                                                Request for All Departments
+                                            </Button>
+                                        </div>
 
-
-
-                                        {day.isCurrentMonth && getHoursWorked(day.date) > 0 && (
-                                            <div className="text-sm">
-                                                <h4 className="font-medium mb-1">Hours Worked</h4>
-                                                <p>{getHoursWorked(day.date).toFixed(2)} hours</p>
-                                            </div>
-                                        )}
+                                        <TimeOffRequestModal
+                                            isOpen={isTimeOffModalOpen}
+                                            onClose={() => setIsTimeOffModalOpen(false)}
+                                            selectedDepartments={selectedDepartments}
+                                            userId={userId}
+                                            defaultDate={day.date}
+                                            onSuccess={fetchSchedules}
+                                        />
                                     </div>
-                                </DialogContent>
-                            </Dialog>
-                        )
-                    })}
+                                )}
+
+                                {day.isCurrentMonth && getHoursWorked(day.date) > 0 && (
+                                    <div className="text-sm">
+                                        <h4 className="font-medium mb-1">Hours Worked</h4>
+                                        <p>{getHoursWorked(day.date).toFixed(2)} hours</p>
+                                    </div>
+                                )}
+                            </DialogContent>
+                        </Dialog>
+                    ))}
                 </div>
                 <div className="mt-2 flex gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
@@ -254,3 +356,4 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
         </Card>
     )
 }
+

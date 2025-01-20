@@ -6,7 +6,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { createSchedule, getSchedule } from '@/actions/schedule'
+import { createSchedule, getScheduleByUserIdAndDepartmentId } from '@/actions/schedule'
 import { EmployeeDepartment, WorkShift } from '@prisma/client'
 import { addDays, format } from 'date-fns'
 
@@ -50,7 +50,7 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
     useEffect(() => {
         const loadSchedule = async () => {
             setLoading(true)
-            const response = await getSchedule(userId, selectedDepartment)
+            const response = await getScheduleByUserIdAndDepartmentId(userId, selectedDepartment)
             if (response.data) {
                 setExistingSchedule(response.data)
                 setShifts(response.data.schedules || [])

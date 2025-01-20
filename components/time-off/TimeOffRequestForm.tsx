@@ -29,16 +29,6 @@ export function TimeOffRequestForm({ departments, userId, defaultDate, onSuccess
   const [message, setMessage] = useState('')
   const { toast } = useToast()
 
-  const handleSelectDepartment = (value: string) => {
-    if (value === 'all') {
-      setSelectedDepts(departments)
-      return
-    }
-    const dept = departments.find(d => d.id === value)
-    if (dept && !selectedDepts.find(d => d.id === dept.id)) {
-      setSelectedDepts([...selectedDepts, dept])
-    }
-  }
 
   const removeDepartment = (deptId: string) => {
     setSelectedDepts(selectedDepts.filter(d => d.id !== deptId))
@@ -117,7 +107,7 @@ export function TimeOffRequestForm({ departments, userId, defaultDate, onSuccess
         <Calendar
           mode="range"
           selected={date}
-          onSelect={(value: any) => setDate(value)}
+          onSelect={(value) => value && setDate(value as { from: Date; to: Date })}
           disabled={(date) => date < new Date()}
           numberOfMonths={2}
           className="rounded-md border"
@@ -153,3 +143,4 @@ export function TimeOffRequestForm({ departments, userId, defaultDate, onSuccess
     </div>
   )
 }
+

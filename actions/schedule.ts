@@ -1,6 +1,7 @@
 "use server";
 
 import { scheduleService } from '@/services/ScheduleService'
+import { timeOffRequestService } from '@/services/TimeOffRequestService';
 
 export async function createSchedule(
   userId: string,
@@ -41,12 +42,22 @@ export async function createSchedule(
   }
 }
 
-export async function getSchedule(userId: string, departmentId: string) {
+export async function fetchTimeOffRequestsByUserId(departmentId: string) {
   try {
-    const schedule = await scheduleService.getSchedule(departmentId, userId)
+    const schedule = await timeOffRequestService.fetchTimeOffRequestsByUserId(departmentId)
     return { data: schedule }
   } catch (error) {
     return { error: 'Failed to fetch schedule' }
   }
 }
 
+
+
+export async function getScheduleByUserIdAndDepartmentId(userId: string, departmentId: string) {
+  try {
+    const schedule = await scheduleService.getScheduleByUserIdAndDepartmentId(userId, departmentId)
+    return { data: schedule }
+  } catch (error) {
+    return { error: 'Failed to fetch schedule' }
+  }
+}

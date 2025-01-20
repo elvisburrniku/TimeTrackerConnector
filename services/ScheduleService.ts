@@ -124,6 +124,18 @@ export class ScheduleService {
       }
     })
   }
+
+  async getScheduleByUserIdAndDepartmentId(userId: string, departmentId: string) {
+    return await db.departmentSchedule.findFirst({
+      where: {
+        userId,
+        departmentId
+      },
+      include: {
+        schedules: true
+      }
+    })
+  }
 }
 
 export const scheduleService = new ScheduleService()

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { TimeOffRequest, TimeEntryStatus, User } from '@prisma/client'
+import { TimeOffRequest, User } from '@prisma/client'
 import { approveTimeOff, rejectTimeOff, getTimeOffRequestsByDeparmentId } from '@/actions/time-off'
 import { format } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
@@ -11,13 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSession } from 'next-auth/react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { TimeOffStatusColors } from '@/components/time-off/TimeOffRequestViewCard'
 
-const StatusBadgeMap: Record<TimeEntryStatus, { variant: "outline" | "destructive" | "default" | "secondary"; label: string }> = {
-    [TimeEntryStatus.PENDING]: { variant: 'outline', label: 'Pending' },
-    [TimeEntryStatus.APPROVED]: { variant: 'secondary', label: 'Approved' },
-    [TimeEntryStatus.REJECTED]: { variant: 'destructive', label: 'Rejected' },
-    [TimeEntryStatus.NOTSUBMITTED]: { variant: 'outline', label: 'Not Submitted' }
-} as const
 
 export interface TimeOffRequestwithEmployee extends TimeOffRequest {
     employee: User
@@ -29,11 +24,6 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
     const [actionLoading, setActionLoading] = useState<string | null>(null)
     const { toast } = useToast()
     const { data: session } = useSession()
-
-    useEffect(() => {
-        fetchRequests()
-    }, [departmentId])
-
     const fetchRequests = async () => {
         try {
             const response = await getTimeOffRequestsByDeparmentId(departmentId)
@@ -48,6 +38,7 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
             if (!response.data) return
             setRequests(response.data)
         } catch (error) {
+            console.error(error)
             toast({
                 title: 'Error',
                 description: 'Failed to fetch time off requests',
@@ -57,6 +48,11 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
             setLoading(false)
         }
     }
+
+    useEffect(() => {
+        fetchRequests()
+    }, [departmentId])
+
 
     const handleApprove = async (requestId: string) => {
         if (!session?.user?.id) return
@@ -158,8 +154,8 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Status</p>
-                                        <Badge variant={StatusBadgeMap[request.status].variant}>
-                                            {StatusBadgeMap[request.status].label}
+                                        <Badge className={TimeOffStatusColors[request.status]}>
+                                            {request.status}
                                         </Badge>
                                     </div>
                                 </div>

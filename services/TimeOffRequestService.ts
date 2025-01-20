@@ -70,6 +70,10 @@ export class TimeOffRequestService {
       }
     })
   }
+
+  async cancelTimeOffRequest(requestId: string) {
+    return await db.timeOffRequest.delete({ where: { id: requestId } })
+  }
 }
 
 export const timeOffRequestService = new TimeOffRequestService()
