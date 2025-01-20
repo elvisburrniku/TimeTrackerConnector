@@ -35,7 +35,6 @@ export class TimeOffRequestService {
     const employees = await departmentService.getDeparmentEmployees(departmentId)
     if (!employees) return []
 
-
     return await db.timeOffRequest.findMany({
       where: {
         userId: {
@@ -45,7 +44,15 @@ export class TimeOffRequestService {
       include: {
         employee: true,
         approvedBy: true
-      }
+      },
+      orderBy: [
+        {
+          status: 'asc'
+        },
+        {
+          startDate: 'desc'
+        }
+      ]
     })
 
   }

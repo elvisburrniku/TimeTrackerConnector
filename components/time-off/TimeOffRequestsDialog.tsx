@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSession } from "next-auth/react"
+import { ScrollArea } from "@radix-ui/react-scroll-area"
 
 interface TimeOffRequestsDialogProps {
     department: Department
@@ -118,15 +119,33 @@ export function TimeOffRequestsDialog({
         }
     }
 
-    const filteredRequests = requests.filter(request => 
+    const filteredRequests = requests.filter(request =>
         statusFilter === 'ALL' || request.status === statusFilter
     )
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-3xl max-h-[80vh]">
                 <DialogHeader>
                     <DialogTitle>Time Off Requests - {department.name}</DialogTitle>
+                    <div className="flex gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                            <div className="badge bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                                Pending: {requests.filter(r => r.status === 'PENDING').length}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="badge bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                Approved: {requests.filter(r => r.status === 'APPROVED').length}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="badge bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                                Rejected: {requests.filter(r => r.status === 'REJECTED').length}
+                            </div>
+                    </div>
+                    </div>
+
                 </DialogHeader>
 
                 <div className="space-y-4">
@@ -152,16 +171,32 @@ export function TimeOffRequestsDialog({
                             No time off requests found
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            {filteredRequests.map(request => (
-                                <TimeOffRequestViewCard
-                                    key={request.id}
-                                    timeOffRequest={request}
-                                    onApproved={() => handleApprove(request.id)}
-                                    onRejected={() => handleReject(request.id)}
-                                />
-                            ))}
-                        </div>
+                        <ScrollArea className="max-h-[60vh] overflow-y-auto rounded-md">
+                            <div className="space-y-4 p-4">
+                                {filteredRequests.map((request, index) => (
+                                    <div
+                                        key={request.id}
+                                        className={`transition-opacity duration-300 ease-in-out ${
+                                            index === 0 ? 'opacity-100' : 'opacity-90 hover:opacity-100'
+                                        }`}
+                                    >
+                                        <TimeOffRequestViewCard
+                                            timeOffRequest={request}
+                                            onApproved={() => handleApprove(request.id)}
+                                            onRejected={() => handleReject(request.id)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {filteredRequests.length > 5 && (
+                                <div className="sticky bottom-0 w-full text-center py-3 bg-gradient-to-t from-background/95 to-transparent backdrop-blur-sm">
+                                    <span className="text-sm text-muted-foreground animate-pulse">
+                                        ↓ Scroll to view more requests
+                                    </span>
+                                </div>
+                            )}
+                        </ScrollArea>
                     )}
                 </div>
             </DialogContent>

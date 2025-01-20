@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useSession } from 'next-auth/react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { TimeOffStatusColors } from '@/components/time-off/TimeOffRequestViewCard'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 
 export interface TimeOffRequestwithEmployee extends TimeOffRequest {
@@ -124,7 +125,7 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
     }
 
     return (
-        <div className="space-y-4">
+        <ScrollArea className="space-y-4 h-5/6">
             {requests.length === 0 ? (
                 <Card>
                     <CardContent className="p-6 text-center text-muted-foreground">
@@ -196,6 +197,6 @@ export function TimeOffApprovalView({ departmentId }: { departmentId: string }) 
                     </Card>
                 ))
             )}
-        </div>
+        </ScrollArea>
     )
 }
