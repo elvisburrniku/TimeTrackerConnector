@@ -11,15 +11,17 @@ import { Suspense } from 'react';
 import StatisticsCardsSkelethon from '@/components/skeleton/components/StatisticsCardsSkelethon';
 import TimeClockSkeleton from '@/components/skeleton/components/TimeClockSkeleton';
 import TimeEntryListSkeleton from '@/components/skeleton/components/TimeEntryListSkelethon';
+import { ScheduleView } from "@/components/schedule/ScheduleView"
+import { getSchedule } from "@/actions/schedule"
+import { ScheduleSkeleton } from '@/components/skeleton/components/ScheduleSkeleton';
 
-async function Dashboard() {
+export default async function Dashboard() {
   const user = await currentUser();
   let departments: Department[] = [];
 
   if (user && user.id) {
     try {
       const data = await getEmployeePermittedDepartmentsInfo(user.id, user.id);
-
       if (data && data.departments)
         departments = data.departments;
     } catch (error) {
@@ -43,8 +45,12 @@ async function Dashboard() {
       <Suspense fallback={<TimeEntryListSkeleton />}>
       <TimeEntryList />
       </Suspense>
+      <Suspense fallback={<ScheduleSkeleton />}>
+        <ScheduleView 
+          departments={departments} 
+          userId={user?.id ?? ''} 
+        />
+      </Suspense>
     </div>
   )
 }
-
-export default Dashboard
