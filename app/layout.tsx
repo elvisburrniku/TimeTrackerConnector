@@ -74,17 +74,19 @@ export default async function ProtectedLayout({
 
   return (
     <html lang="en">
-      <SessionProvider session={session}>
-        <TimeEntryProvider currentEntry={currentEntry} recentEntries={recentEntries} departments={departments} permittedDepartments={permittedDepartments}>
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-yellow-50`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-yellow-50`}>
+
+        <SessionProvider session={session}>
+          <TimeEntryProvider currentEntry={currentEntry} recentEntries={recentEntries} departments={departments} permittedDepartments={permittedDepartments}>
 
             <Header user={user ?? null} />
             {children}
-          </body>
-          <Toaster />
-        </TimeEntryProvider>
+            <Toaster />
+          </TimeEntryProvider>
 
-      </SessionProvider>
+        </SessionProvider>
+      </body>
+
     </html>
   );
 }
