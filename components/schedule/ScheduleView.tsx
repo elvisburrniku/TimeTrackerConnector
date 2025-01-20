@@ -179,7 +179,7 @@ function DaySchedule({ date, shifts }: { date: Date, shifts: WorkShift[] }) {
 
         const timer = setInterval(() => {
             setCurrentTime(new Date())
-        }, 60000)
+        }, 1000)
 
         return () => clearInterval(timer)
     }, [isToday])

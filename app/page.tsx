@@ -105,7 +105,6 @@ export default async function HomePage() {
                 {/* Role Indicator */}
                 <div className="mb-8 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold">Dashboard</h1>
                         {isAdmin && (
                             <Badge
                                 variant="default"

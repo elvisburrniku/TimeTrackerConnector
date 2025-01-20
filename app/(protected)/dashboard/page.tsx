@@ -30,6 +30,7 @@ export default async function Dashboard() {
 
   return (
     <div className="space-y-6 my-6 container mx-auto">
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
           <Suspense fallback={<TimeClockSkeleton />}>
