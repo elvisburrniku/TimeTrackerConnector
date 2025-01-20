@@ -134,7 +134,7 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                                         day.isToday && "bg-orange-200 border-orange-400",
                                         hasSchedule && "font-medium"
                                     )}>
-                                        <span className="text-sm">{format(day.date, 'd')}</span>
+                                        <span className="text-sm m-1 text-center">{format(day.date, 'd')}</span>
                                     </div>
                                 </DialogTrigger>
                                 <DialogContent>

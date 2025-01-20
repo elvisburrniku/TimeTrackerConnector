@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { Badge } from "../ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Department } from "@prisma/client"
 import { getSchedule } from "@/actions/schedule"
 
@@ -69,12 +69,14 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
         )
     }
 
-    const schedulesByDepartment = schedules.reduce((acc, schedule) => {
-        const dept = schedule.department.id;
-        if (!acc[dept]) acc[dept] = [];
-        acc[dept].push(schedule);
-        return acc;
-    }, {} as Record<string, ScheduleWithDepartment[]>);
+    const schedulesByDepartment = useMemo(() => {
+        return schedules.reduce((acc, schedule) => {
+            const dept = schedule.department.id;
+            if (!acc[dept]) acc[dept] = [];
+            acc[dept].push(schedule);
+            return acc;
+        }, {} as Record<string, ScheduleWithDepartment[]>);
+    }, [schedules]);
 
     const { hasConflict, conflicts } = checkScheduleConflicts(schedules);
     return (
@@ -98,17 +100,18 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
                 )}
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-                {!loading && Object.keys(schedulesByDepartment).length === 0 ? (
+                {!loading && schedules.length === 0 ? (
                     <div className="text-center p-8 text-muted-foreground">
                         No schedules found
                     </div>
                 ) : (
-                    <Tabs defaultValue={Object.keys(schedulesByDepartment)[0]} className="w-full">
-                        <TabsList className="w-full overflow-x-auto flex whitespace-nowrap mb-4 pb-1 hide-scrollbar">
+                    <Tabs activationMode="automatic" className="w-full">
+                        <TabsList className="whitespace-nowrap mb-4 pb-1 hide-scrollbar">
                             {Object.entries(schedulesByDepartment).map(([deptId, deptSchedules]) => (
                                 <TabsTrigger
                                     key={deptId}
                                     value={deptId}
+                                    defaultChecked={deptId === Object.keys(schedulesByDepartment)[0]}
                                     className="flex-shrink-0 text-sm sm:text-base"
                                 >
                                     {deptSchedules[0]?.department?.name || 'Unknown Department'}
@@ -162,15 +165,35 @@ function WeeklySchedule({ schedule }: { schedule: ScheduleWithDepartment }) {
 function DaySchedule({ date, shifts }: { date: Date, shifts: WorkShift[] }) {
     const today = new Date()
     const isToday = format(date, 'EEEE') === format(today, 'EEEE')
-    const sortedShifts = [...shifts].sort((a, b) =>
+    const [currentTime, setCurrentTime] = useState(new Date())
+    const sortedShifts = useMemo(() => shifts.sort((a, b) => 
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-    )
+    ), [shifts])
+
+
+    // Update current time every minute
+    useEffect(() => {
+        if (!isToday) return
+
+        const timer = setInterval(() => {
+            setCurrentTime(new Date())
+        }, 60000)
+
+        return () => clearInterval(timer)
+    }, [isToday])
+
+    // Calculate time indicator position
+    const getTimeIndicatorPosition = () => {
+        const minutes = currentTime.getHours() * 60 + currentTime.getMinutes()
+        return (minutes / 1440) * 100 // 1440 = minutes in a day
+    }
 
     return (
         <div className={cn(
-            "p-2 sm:p-3 border rounded-lg min-h-[120px] flex flex-col",
+            "p-2 sm:p-3 border rounded-lg min-h-[120px] flex flex-col relative",
             isToday && "bg-orange-50 border-orange-200"
         )}>
+            {/* Existing header */}
             <div className="text-xs sm:text-sm font-medium mb-2 flex items-center justify-between">
                 <div className={cn("", isToday && "text-orange-600")}>
                     {format(date, 'EEEE')}
@@ -182,7 +205,23 @@ function DaySchedule({ date, shifts }: { date: Date, shifts: WorkShift[] }) {
                 )}
             </div>
 
-            {/* Shifts List */}
+            {/* Time indicator for today */}
+            {isToday && (
+                <div
+                    className="absolute left-0 right-0 pointer-events-none"
+                    style={{ top: `${getTimeIndicatorPosition()}%` }}
+                >
+                    <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <div className="h-px flex-1 bg-red-500" />
+                        <span className="text-[10px] text-red-500 px-1">
+                            {format(currentTime, 'h:mm a')}
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {/* Existing shifts list */}
             <div className="flex-1 space-y-1.5 overflow-y-auto max-h-32 sm:max-h-40">
                 {sortedShifts.length === 0 ? (
                     <div className="text-[10px] sm:text-xs text-muted-foreground text-center py-2">

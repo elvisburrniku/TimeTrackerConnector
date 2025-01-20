@@ -12,6 +12,7 @@ import TimeClockSkeleton from '@/components/skeleton/components/TimeClockSkeleto
 import TimeEntryListSkeleton from '@/components/skeleton/components/TimeEntryListSkelethon';
 import { ScheduleSkeleton } from '@/components/skeleton/components/ScheduleSkeleton';
 import { CombinedScheduleView } from "@/components/schedule/CombinedScheduleView"
+import { ScheduleView } from '@/components/schedule/ScheduleView';
 
 export default async function Dashboard() {
   const user = await currentUser();
@@ -46,9 +47,17 @@ export default async function Dashboard() {
       <Suspense fallback={<StatisticsCardsSkelethon />}>
         <StatisticsCards />
       </Suspense>
+      <Suspense fallback={<ScheduleSkeleton />}>
+        <ScheduleView
+          departments={departments}
+          userId={user?.id ?? ''}
+        />
+      </Suspense>
+
       <Suspense fallback={<TimeEntryListSkeleton />}>
         <TimeEntryList />
       </Suspense>
+
 
     </div>
   )
