@@ -193,7 +193,7 @@ model TimeOffRequest {
   id          String          @id @default(cuid())
   startDate   DateTime        @db.Date
   endDate     DateTime        @db.Date
-  requestType String // vacation, sick, personal
+  requestType TimeOffRequestType @default(PERSONAL)
   status      TimeEntryStatus @default(PENDING)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -310,4 +310,12 @@ enum RelatedEntityType {
   TIMESHEET
   NOTIFICATION
   TIME_ENTRY
+}
+
+enum TimeOffRequestType {
+  VACATION
+  SICK
+  PERSONAL
+  UNPAID
+  OTHER
 }
