@@ -2,7 +2,7 @@
 
 import { DepartmentSchedule, WorkShift } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { format,  addDays, startOfWeek } from "date-fns"
+import { format, addDays, startOfWeek } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
@@ -13,61 +13,7 @@ import { useEffect, useState } from "react"
 import { Department } from "@prisma/client"
 import { getSchedule } from "@/actions/schedule"
 
-interface ScheduleWithDepartment extends DepartmentSchedule {
-    schedules: WorkShift[];
-    department: { id: string; name: string; }
-}
 
-function checkScheduleConflicts(schedules: ScheduleWithDepartment[]) {
-  const conflicts: Array<{
-    shift1: WorkShift & { departmentName: string };
-    shift2: WorkShift & { departmentName: string };
-  }> = [];
-
-  // Compare shifts between different departments
-  schedules.forEach((schedule1, index) => {
-    schedules.slice(index + 1).forEach(schedule2 => {
-      // Skip if same department
-      if (schedule1.department.id === schedule2.department.id) return;
-
-      schedule1.schedules.forEach(shift1 => {
-        schedule2.schedules.forEach(shift2 => {
-          // Only check shifts on same day
-          if (shift1.dayOfWeek === shift2.dayOfWeek) {
-            const start1 = new Date(shift1.startTime);
-            const end1 = new Date(shift1.endTime);
-            const start2 = new Date(shift2.startTime);
-            const end2 = new Date(shift2.endTime);
-
-            // Check for time overlap
-            const hasOverlap = (
-              (start1 <= end2 && end1 > start2) || // shift1 overlaps with start of shift2
-              (start2 <= end1 && end2 > start1)    // shift2 overlaps with start of shift1
-            );
-
-            if (hasOverlap) {
-              conflicts.push({
-                shift1: { 
-                  ...shift1, 
-                  departmentName: schedule1.department.name 
-                },
-                shift2: { 
-                  ...shift2, 
-                  departmentName: schedule2.department.name 
-                }
-              });
-            }
-          }
-        });
-      });
-    });
-  });
-
-  return {
-    hasConflict: conflicts.length > 0,
-    conflicts
-  };
-}
 
 interface ScheduleViewProps {
     departments: Department[]
@@ -160,8 +106,8 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
                     <Tabs defaultValue={Object.keys(schedulesByDepartment)[0]} className="w-full">
                         <TabsList className="w-full overflow-x-auto flex whitespace-nowrap mb-4 pb-1 hide-scrollbar">
                             {Object.entries(schedulesByDepartment).map(([deptId, deptSchedules]) => (
-                                <TabsTrigger 
-                                    key={deptId} 
+                                <TabsTrigger
+                                    key={deptId}
                                     value={deptId}
                                     className="flex-shrink-0 text-sm sm:text-base"
                                 >
@@ -193,7 +139,10 @@ function WeeklySchedule({ schedule }: { schedule: ScheduleWithDepartment }) {
         <div className="mb-6 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
                 <h3 className="text-sm sm:text-base font-medium">
-                    Week {format(schedule.weekStart, 'w')}
+                    Week {format(schedule.weekStart, 'w')} - {" "}
+                    <span className="text-muted-foreground">
+                        {format(schedule.weekEnd, 'MMM d, yyyy')}
+                    </span>
                 </h3>
             </div>
 
@@ -278,4 +227,60 @@ function DaySchedule({ date, shifts }: { date: Date, shifts: WorkShift[] }) {
             </div>
         </div>
     )
+}
+
+export interface ScheduleWithDepartment extends DepartmentSchedule {
+    schedules: WorkShift[];
+    department: { id: string; name: string; }
+}
+
+export function checkScheduleConflicts(schedules: ScheduleWithDepartment[]) {
+    const conflicts: Array<{
+        shift1: WorkShift & { departmentName: string };
+        shift2: WorkShift & { departmentName: string };
+    }> = [];
+
+    // Compare shifts between different departments
+    schedules.forEach((schedule1, index) => {
+        schedules.slice(index + 1).forEach(schedule2 => {
+            // Skip if same department
+            if (schedule1.department.id === schedule2.department.id) return;
+
+            schedule1.schedules.forEach(shift1 => {
+                schedule2.schedules.forEach(shift2 => {
+                    // Only check shifts on same day
+                    if (shift1.dayOfWeek === shift2.dayOfWeek) {
+                        const start1 = new Date(shift1.startTime);
+                        const end1 = new Date(shift1.endTime);
+                        const start2 = new Date(shift2.startTime);
+                        const end2 = new Date(shift2.endTime);
+
+                        // Check for time overlap
+                        const hasOverlap = (
+                            (start1 <= end2 && end1 > start2) || // shift1 overlaps with start of shift2
+                            (start2 <= end1 && end2 > start1)    // shift2 overlaps with start of shift1
+                        );
+
+                        if (hasOverlap) {
+                            conflicts.push({
+                                shift1: {
+                                    ...shift1,
+                                    departmentName: schedule1.department.name
+                                },
+                                shift2: {
+                                    ...shift2,
+                                    departmentName: schedule2.department.name
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    });
+
+    return {
+        hasConflict: conflicts.length > 0,
+        conflicts
+    };
 }

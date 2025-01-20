@@ -1,7 +1,6 @@
 "use server";
 
 import { TimeClock } from '@/components/TimeClock'
-import { Calendar } from '@/components/Calendar'
 import { TimeEntryList } from '@/components/TimeEntryList'
 import { StatisticsCards } from '@/components/StatisticsCards'
 import { getEmployeePermittedDepartmentsInfo } from '@/actions/department'
@@ -11,9 +10,8 @@ import { Suspense } from 'react';
 import StatisticsCardsSkelethon from '@/components/skeleton/components/StatisticsCardsSkelethon';
 import TimeClockSkeleton from '@/components/skeleton/components/TimeClockSkeleton';
 import TimeEntryListSkeleton from '@/components/skeleton/components/TimeEntryListSkelethon';
-import { ScheduleView } from "@/components/schedule/ScheduleView"
-import { getSchedule } from "@/actions/schedule"
 import { ScheduleSkeleton } from '@/components/skeleton/components/ScheduleSkeleton';
+import { CombinedScheduleView } from "@/components/schedule/CombinedScheduleView"
 
 export default async function Dashboard() {
   const user = await currentUser();
@@ -37,20 +35,21 @@ export default async function Dashboard() {
             <TimeClock departments={departments} />
           </Suspense>
         </div>
-        <Calendar />
+        {/* <Calendar /> */}
+        <Suspense fallback={<ScheduleSkeleton />}>
+          <CombinedScheduleView
+            departments={departments}
+            userId={user?.id ?? ''}
+          />
+        </Suspense>
       </div>
       <Suspense fallback={<StatisticsCardsSkelethon />}>
         <StatisticsCards />
       </Suspense>
       <Suspense fallback={<TimeEntryListSkeleton />}>
-      <TimeEntryList />
+        <TimeEntryList />
       </Suspense>
-      <Suspense fallback={<ScheduleSkeleton />}>
-        <ScheduleView 
-          departments={departments} 
-          userId={user?.id ?? ''} 
-        />
-      </Suspense>
+
     </div>
   )
 }

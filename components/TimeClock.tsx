@@ -111,7 +111,7 @@ export function TimeClock({ departments }: TimeClockProps) {
   });
 
   return (
-    <Card className="">
+    <Card className="h-full grid place-items-center">
       <CardHeader className="border-b">
         <CardTitle>Employee Time Clock</CardTitle>
       </CardHeader>
