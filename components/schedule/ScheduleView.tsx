@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { Badge } from "../ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {  useEffect, useMemo, useState } from "react"
 import { Department } from "@prisma/client"
 import { getSchedule } from "@/actions/schedule"
 
@@ -55,6 +55,15 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
         }
     }, [departments, userId])
 
+    const schedulesByDepartment = useMemo(() => {
+        return schedules.reduce((acc, schedule) => {
+            const dept = schedule.department.id;
+            if (!acc[dept]) acc[dept] = [];
+            acc[dept].push(schedule);
+            return acc;
+        }, {} as Record<string, ScheduleWithDepartment[]>);
+    }, [schedules]);
+    
     if (error) {
         return (
             <Card>
@@ -69,14 +78,7 @@ export function ScheduleView({ departments, userId }: ScheduleViewProps) {
         )
     }
 
-    const schedulesByDepartment = useMemo(() => {
-        return schedules.reduce((acc, schedule) => {
-            const dept = schedule.department.id;
-            if (!acc[dept]) acc[dept] = [];
-            acc[dept].push(schedule);
-            return acc;
-        }, {} as Record<string, ScheduleWithDepartment[]>);
-    }, [schedules]);
+ 
 
     const { hasConflict, conflicts } = checkScheduleConflicts(schedules);
     return (

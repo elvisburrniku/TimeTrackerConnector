@@ -28,16 +28,13 @@ type CalendarDay = {
 
 export function CombinedScheduleView({ departments, userId }: CombinedScheduleViewProps) {
     const [currentDate, setCurrentDate] = useState(new Date())
-    const [selectedDepartment, setSelectedDepartment] = useState<string | null>(departments[0]?.id || null)
     const { recentEntries } = useTimeEntry()
     const [schedules, setSchedules] = useState<ScheduleWithDepartment[]>([])
-    const [loading, setLoading] = useState(true)
 
     // Fetch schedules effect
     useEffect(() => {
         async function fetchSchedules() {
             if (!departments.length || !userId) return
-            setLoading(true)
             try {
                 const results = await Promise.all(
                     departments.map(async (dept) => {
@@ -49,8 +46,8 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                     })
                 )
                 setSchedules(results.filter((s): s is ScheduleWithDepartment => s !== null))
-            } finally {
-                setLoading(false)
+            } catch (error) {
+                console.error('Failed to fetch schedules:', error)
             }
         }
         fetchSchedules()

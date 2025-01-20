@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { createSchedule, getSchedule } from '@/actions/schedule'
 import { EmployeeDepartment, WorkShift } from '@prisma/client'
-import { addDays, endOfWeek, format, startOfWeek, isSameDay, isWithinInterval } from 'date-fns'
+import { addDays, format } from 'date-fns'
 
 interface DepartmentSchedule {
     id: string
@@ -83,7 +83,10 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
         const response = await createSchedule(userId, selectedDepartment, {
             weekStart: selectedWeek.from,
             weekEnd: selectedWeek.to,
-            shifts: shifts.map(({ scheduleId, ...shift }) => shift)
+            shifts: shifts.map(({ scheduleId: _scheduleId, ...shift }) => {
+                console.log(_scheduleId)
+                return shift
+            })
         })
 
         if (response.conflicts) {
