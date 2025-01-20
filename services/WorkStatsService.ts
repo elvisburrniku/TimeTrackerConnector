@@ -54,7 +54,9 @@ export class WorkStatsService {
     const departmentStats = await this.calculateDepartmentStats(timeEntries, departments)
     const weeklyHours = Number(departmentStats.reduce((total, dept) => total + dept.hours, 0).toFixed(2))
     const overtimeHours = Number(Math.max(weeklyHours - 40, 0).toFixed(2))
-    const expectedPay = Number(departmentStats.reduce((total, dept) => total + dept.pay, 0).toFixed(2))
+    const expectedPay = 
+    Number(departmentStats.reduce((total, dept) => 
+      total + (dept.regularHours * dept.rate) + (dept.overtimeHours * dept.rate * 1.5), 0).toFixed(2))
     const lastClockIn = timeEntries[0]?.clockIn
 
     return {

@@ -56,19 +56,19 @@ export async function StatsSection({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-orange-50 rounded-lg p-4">
-                    <p className="text-orange-600 text-sm font-medium">Total Hours</p>
+                    <p className="text-orange-600 text-sm font-medium">Total Weekly Hours</p>
                     <p className="text-2xl font-bold text-gray-900">
                         {stats ? (
-                            `${stats.weeklyHours.toFixed(1)}h`
+                            `${stats.weeklyHours.toFixed(2)}h`
                         ) : (
                             <LoadingSpinner />
                         )}
                     </p>
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-600">This week</p>
+                        <p className="text-sm text-gray-600">Overtime hours</p>
                         {stats?.overtimeHours && stats.overtimeHours > 0 && (
                             <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
-                                +{stats.overtimeHours.toFixed(1)}h OT
+                                +{stats.overtimeHours.toFixed(2)}h
                             </span>
                         )}
                     </div>
