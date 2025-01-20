@@ -11,6 +11,7 @@ import { AdminSection } from '@/components/home/AdminSection'
 import { Badge } from '@/components/ui/badge'
 import { FeaturesGrid } from '@/components/home/FeaturesGrid'
 import { TestCredentials } from '@/components/home/TestCredentials'
+import { GitHubLogoIcon } from '@radix-ui/react-icons'
 
 export default async function HomePage() {
     const user = await currentUser();
@@ -71,19 +72,41 @@ export default async function HomePage() {
                     <TestCredentials />
 
                     {/* Footer */}
-                    <footer className="py-12 bg-white">
-                        <div className="container mx-auto px-4 text-center">
-                            <p className="text-sm text-gray-500">
-                                Created by{' '}
-                                <a
-                                    href="https://www.dineshchhantyal.com"
-                                    className="text-orange-600 hover:text-orange-700 font-medium"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Dinesh Chhantyal
-                                </a>
-                            </p>
+                    <footer className="py-16 bg-gradient-to-b from-white to-orange-50">
+                        <div className="container mx-auto px-4">
+                            <div className="flex flex-col items-center justify-center space-y-6">
+                                <div className="flex items-center space-x-4">
+                                    <a
+                                        href="https://www.dineshchhantyal.com"
+                                        className="text-gray-600 hover:text-orange-600 transition-colors duration-200"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Portfolio
+                                    </a>
+                                    <span className="text-gray-300">•</span>
+                                    <a
+                                        href="https://github.com/dineshchhantyal/TimeClock"
+                                        className="text-gray-600 hover:text-orange-600 transition-colors duration-200 flex items-center gap-2"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <GitHubLogoIcon className="h-5 w-5" />
+                                        Source Code
+                                    </a>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                    Designed & Built by{' '}
+                                    <a
+                                        href="https://www.dineshchhantyal.com"
+                                        className="text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Dinesh Chhantyal
+                                    </a>
+                                </p>
+                            </div>
                         </div>
                     </footer>
                 </main>
