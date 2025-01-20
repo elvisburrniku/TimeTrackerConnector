@@ -461,6 +461,19 @@ class DepartmentService {
       return null;
     }
   }
+
+  async updateEmployeeInfo(roleId: string, data: { role: EmployeeDepartmentRole; hourlyRate: number; position: string }): Promise<EmployeeDepartment | null> {
+    try {
+      const employee = await db.employeeDepartment.update({
+        where: { id: roleId },
+        data,
+      });
+      return employee;
+    } catch (error) {
+      console.error("Error updating employee info:", error);
+      return null;
+    }
+  }
 }
 
 export const departmentService = new DepartmentService();

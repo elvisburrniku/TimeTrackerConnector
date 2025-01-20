@@ -14,6 +14,9 @@ import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { MoreHorizontal, Search, Edit, Trash } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { UpdateEmployeeDialog } from './UpdateEmployeeDialog'
+import { updateEmployeeInfo } from '@/actions/employees'
+import Decimal from 'decimal.js'
 
 export interface DepartmentEmployeeListDialogProps {
     department: Department
@@ -36,6 +39,7 @@ export default function DepartmentEmployeeListDialog({
     const [roleFilter, setRoleFilter] = useState<EmployeeDepartmentRole | 'ALL'>('ALL')
     const { toast } = useToast()
     const user = useCurrentUser()
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeDepartmentWithUser | null>(null)
 
     useEffect(() => {
         const loadEmployees = async () => {
@@ -67,6 +71,27 @@ export default function DepartmentEmployeeListDialog({
         const response = await removeEmployeeFromDepartmentByRoleId(roleId)
         if (response.success) {
             setEmployees(employees.filter(emp => emp.id !== roleId))
+            toast({
+                title: 'Success',
+                description: response.success
+            })
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: response.error
+            })
+        }
+    }
+
+    const handleUpdateEmployee = async (roleId: string, data: { role: EmployeeDepartmentRole; hourlyRate: number; position: string }) => {
+        const response = await updateEmployeeInfo(roleId, data)
+        if (response.success) {
+            setEmployees(employees.map(emp => 
+                emp.id === roleId 
+                ? { ...emp, role: data.role, hourlyRate: new Decimal(data.hourlyRate), position: data.position }
+                : emp
+            ))
             toast({
                 title: 'Success',
                 description: response.success
@@ -166,7 +191,7 @@ export default function DepartmentEmployeeListDialog({
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => setSelectedEmployee(employee)}>
                                                             <Edit className="mr-2 h-4 w-4" />
                                                             Edit Role/Rate
                                                         </DropdownMenuItem>
@@ -187,6 +212,14 @@ export default function DepartmentEmployeeListDialog({
                         </Table>
                     </div>
                 </div>
+                {selectedEmployee && (
+                    <UpdateEmployeeDialog
+                        isOpen={!!selectedEmployee}
+                        onOpenChange={(open) => !open && setSelectedEmployee(null)}
+                        employee={selectedEmployee}
+                        onUpdate={handleUpdateEmployee}
+                    />
+                )}
             </DialogContent>
         </Dialog>
     )

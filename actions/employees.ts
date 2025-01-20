@@ -39,6 +39,23 @@ export const getEmployessByDepartmentIds = async (userId: string, departmentIds:
     } else {
         return { error: "Failed to get employees." };
     }
-    }
+};
 
-    
+export const updateEmployeeInfo = async (
+  roleId: string,
+  data: {
+    role: EmployeeDepartmentRole;
+    hourlyRate: number;
+    position: string;
+  }
+) => {
+  try {
+    const updated = await departmentService.updateEmployeeInfo(roleId, data);
+    if (updated) {
+      return { success: "Employee information updated successfully!" };
+    }
+    return { error: "Failed to update employee information." };
+  } catch (error) {
+    return { error: "Something went wrong." };
+  }
+};
