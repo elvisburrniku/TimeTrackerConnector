@@ -194,27 +194,18 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
-                                        <TooltipProvider>
-                                            <Tooltip delayDuration={0} disableHoverableContent>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-green-600"
-                                                        onClick={() => {
-                                                            setSelectedDepartment(department)
-                                                            setIsSettingsDialogOpen(true)
-                                                        }}
-                                                    >
-                                                        <Settings className="w-4 h-4 mr-2" />
-                                                        Settings
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>This feature is not yet available</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-green-600"
+                                            onClick={() => {
+                                                setSelectedDepartment(department)
+                                                setIsSettingsDialogOpen(true)
+                                            }}
+                                        >
+                                            <Settings className="w-4 h-4 mr-2" />
+                                            Settings
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
