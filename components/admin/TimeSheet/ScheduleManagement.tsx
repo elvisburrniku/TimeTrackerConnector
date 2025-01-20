@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { createSchedule, getSchedule } from '@/actions/schedule'
 import { EmployeeDepartment, WorkShift } from '@prisma/client'
+import { addDays, endOfWeek, format, startOfWeek, isSameDay, isWithinInterval } from 'date-fns'
 
 interface DepartmentSchedule {
     id: string
@@ -23,9 +24,7 @@ interface DepartmentSchedule {
 import { TimeGrid } from './TimeGrid'
 import { DateRange } from 'react-day-picker'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
-import { endOfWeek, format, startOfWeek } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface ScheduleManagementProps {
     userId: string
@@ -36,10 +35,10 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
     const { permittedDepartmentsMap } = useTimeEntry();
     const [employeeDepartments,] = useState<EmployeeDepartment[]>(_e.filter(dept => permittedDepartmentsMap[dept.departmentId]))
     const [selectedDepartment, setSelectedDepartment] = useState(employeeDepartments[0]?.departmentId)
-    const [selectedWeek, setSelectedWeek] = useState<DateRange>({
-        from: startOfWeek(new Date()),
-        to: endOfWeek(new Date())
-    })
+    const [selectedWeek, setSelectedWeek] = useState<DateRange>(() => ({
+        from: undefined,
+        to: undefined
+    }))
     const [shifts, setShifts] = useState<WorkShift[]>([])
     const { toast } = useToast()
     const [existingSchedule, setExistingSchedule] = useState<DepartmentSchedule | null>(null)
@@ -66,11 +65,9 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
     }, [selectedDepartment, userId])
 
     const handleWeekSelect = (range: DateRange | undefined) => {
-        if (range?.from) {
-            const weekStart = startOfWeek(range.from)
-            const weekEnd = endOfWeek(weekStart)
-            setSelectedWeek({ from: weekStart, to: weekEnd })
-        }
+        if (!range) return
+        setSelectedWeek(range)
+        setShifts(existingSchedule?.schedules || [])
     }
 
     const handleCreateSchedule = async () => {
@@ -86,7 +83,7 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
         const response = await createSchedule(userId, selectedDepartment, {
             weekStart: selectedWeek.from,
             weekEnd: selectedWeek.to,
-            shifts
+            shifts: shifts.map(({ scheduleId, ...shift }) => shift)
         })
 
         if (response.conflicts) {
@@ -148,15 +145,33 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
                                 onSelect={handleWeekSelect}
                                 numberOfMonths={1}
                                 disabled={(date) => date < new Date()}
-                                defaultMonth={selectedWeek.from}
-                                showOutsideDays={false}
-                                fixedWeeks
+                                defaultMonth={new Date()}
+                                showOutsideDays={true}
+                                fromDate={new Date()}
+                                toDate={addDays(new Date(), 365)}
+                                className="rounded-md border shadow"
+                                classNames={{
+                                    month: "space-y-4",
+                                    caption: "flex justify-center pt-1 relative items-center",
+                                    caption_label: "text-sm font-medium",
+                                    nav: "space-x-1 flex items-center",
+                                    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                                    nav_button_previous: "absolute left-1",
+                                    nav_button_next: "absolute right-1",
+                                    table: "w-full border-collapse space-y-1",
+                                    head_row: "flex",
+                                    head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                                    row: "flex w-full mt-2",
+                                    cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-orange-50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                                    day_selected: "bg-orange-600 text-white hover:bg-orange-600 hover:text-white focus:bg-orange-600 focus:text-white",
+                                    day_today: "bg-orange-100 text-orange-600",
+                                    day_outside: "text-muted-foreground opacity-50",
+                                    day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
+                                    day_range_middle: "aria-selected:bg-orange-50 aria-selected:text-orange-900",
+                                    day_hidden: "invisible"
+                                }}
                             />
-                            {loading && (
-                                <div className="mt-4 text-center">
-                                    <LoadingSpinner />
-                                </div>
-                            )}
                         </div>
                         <div className="col-span-8">
                             <TimeGrid
@@ -165,7 +180,7 @@ export default function ScheduleManagement({ userId, employeeDepartments: _e }: 
                                     setShifts(newShifts.map(shift => ({
                                         ...shift,
                                         id: crypto.randomUUID(),
-                                        scheduleId: existingSchedule?.id || ''
+                                        scheduleId: existingSchedule?.id || crypto.randomUUID(),
                                     })))
                                 }}
                                 disabled={loading}
