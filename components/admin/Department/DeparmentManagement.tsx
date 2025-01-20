@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw, PlusCircle } from 'lucide-react'
+import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw, PlusCircle, TimerOff } from 'lucide-react'
 import { Department, UserRole } from '@prisma/client'
 import { deleteDepartment, getAllDepartments } from '@/actions/department'
 import { useToast } from '@/hooks/use-toast'
@@ -16,6 +16,7 @@ import DepartmentEmployeeListDialog from './DepartmentEmployeeListDialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { EditDepartmentDialog } from './EditDepartmentDialog'
 import { DepartmentSettingsDialog } from './DepartmentSettingsDialog'
+import { TimeOffRequestsDialog } from '@/components/time-off/TimeOffRequestsDialog'
 
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
@@ -32,6 +33,8 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     const [isEmployeeListDialogOpen, setIsEmployeeListDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
+    const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false)
+
     const { toast } = useToast()
     const user = useCurrentUser()
 
@@ -185,7 +188,10 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                             <Users className="w-4 h-4 mr-2" />
                                             View Employees
                                         </Button>
-
+                                        <Button variant="outline" size="sm" className="text-red-600" onClick={() => { setSelectedDepartment(department); setIsTimeOffDialogOpen(true) }}>
+                                            <TimerOff className="w-4 h-4 mr-2" />
+                                            View TimeOff Requests
+                                        </Button>
                                         <TooltipProvider>
                                             <Tooltip delayDuration={0} disableHoverableContent>                                                <TooltipTrigger asChild>
                                                 <Button variant="outline" size="sm" className="text-orange-600 disabled:cursor-not-allowed">
@@ -259,6 +265,14 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                     department={selectedDepartment}
                     isOpen={isSettingsDialogOpen}
                     onOpenChange={setIsSettingsDialogOpen}
+                />
+            )}
+
+            {selectedDepartment && (
+                <TimeOffRequestsDialog
+                    department={selectedDepartment}
+                    isOpen={isTimeOffDialogOpen}
+                    onOpenChange={setIsTimeOffDialogOpen}
                 />
             )}
         </Card>

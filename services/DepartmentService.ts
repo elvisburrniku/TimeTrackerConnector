@@ -53,6 +53,7 @@ class DepartmentService {
     }
   }
 
+
   async updateDepartment(userId: string, id: string, name: string, info?: string): Promise<Department | null> {
     const user = await db.user.findUnique({ where: { id: userId } });
     const userDeparmentRole = await db.employeeDepartment.findFirst({
@@ -286,7 +287,6 @@ class DepartmentService {
         }
       });
 
-      console.log(department);
 
       let approvedHours = 0, totalHours = 0;
       if (department?.timeEntries) {

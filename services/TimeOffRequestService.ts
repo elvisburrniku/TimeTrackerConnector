@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
 import { TimeOffRequest, TimeEntryStatus, TimeOffRequestType } from '@prisma/client'
+import { notificationService } from './NotificationService'
+import { departmentService } from './DepartmentService'
 
 export class TimeOffRequestService {
   async createTimeOffRequest(
@@ -29,18 +31,27 @@ export class TimeOffRequestService {
     })
   }
 
-  async getTimeOffRequestsByDepartmentId(departmentId?: string) {
+  async getTimeOffRequestsByDepartmentId(departmentId: string) {
+    const employees = await departmentService.getDeparmentEmployees(departmentId)
+    if (!employees) return []
+
+
     return await db.timeOffRequest.findMany({
-      where: departmentId ? { userId: departmentId } : {},
+      where: {
+        userId: {
+          in: employees.map(employee => employee.employee.id)
+        }
+      },
       include: {
         employee: true,
         approvedBy: true
       }
     })
+
   }
 
-  async approveTimeOffRequest(requestId: string, approverId: string) {
-    return await db.timeOffRequest.update({
+  async approveTimeOffRequest(requestId: string, approverId: string): Promise<TimeOffRequest> {
+    const timeoff = await db.timeOffRequest.update({
       where: { id: requestId },
       data: {
         status: TimeEntryStatus.APPROVED,
@@ -48,10 +59,13 @@ export class TimeOffRequestService {
         approvedAt: new Date()
       }
     })
+
+    await notificationService.createTimeOffRequestNotification(timeoff.userId, requestId, "APPROVED")
+    return timeoff
   }
 
-  async rejectTimeOffRequest(requestId: string, approverId: string) {
-    return await db.timeOffRequest.update({
+  async rejectTimeOffRequest(requestId: string, approverId: string): Promise<TimeOffRequest> {
+    const timeoff = await db.timeOffRequest.update({
       where: { id: requestId },
       data: {
         status: TimeEntryStatus.REJECTED,
@@ -59,6 +73,9 @@ export class TimeOffRequestService {
         approvedAt: new Date()
       }
     })
+
+    await notificationService.createTimeOffRequestNotification(timeoff.userId, requestId, "REJECTED")
+    return timeoff
   }
 
   async fetchTimeOffRequestsByUserId(userId: string) {

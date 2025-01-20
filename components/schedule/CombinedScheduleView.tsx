@@ -225,8 +225,8 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
 
                                                 </div>
                                             ))}
-                                            {/* Time Off Request Section */}
-                                            {day.isCurrentMonth && day.date > new Date() && (
+                                            {/* Time Off Request Form */}
+                                            {day.date > new Date() && !day.timeOffRequest && (
                                                 <div className="space-y-4 border-t pt-4">
                                                     <div className="flex items-center justify-between">
                                                         <h4 className="font-medium">Request Time Off</h4>
@@ -278,51 +278,7 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                                     )
                                 )}
 
-                                {/* Time Off Request Form */}
-                                {day.isCurrentMonth && day.date > new Date() && !day.timeOffRequest && (
-                                    <div className="space-y-4 border-t pt-4">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="font-medium">Request Time Off</h4>
-                                            <Badge variant="outline">
-                                                {format(day.date, 'MMM d, yyyy')}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {departments.map(dept => (
-                                                <Button
-                                                    key={dept.id}
-                                                    variant="outline"
-                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                                                    onClick={() => {
-                                                        setSelectedDepartments([dept])
-                                                        setIsTimeOffModalOpen(true)
-                                                    }}
-                                                >
-                                                    {dept.name}
-                                                </Button>
-                                            ))}
-                                            <Button
-                                                variant="outline"
-                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                                                onClick={() => {
-                                                    setSelectedDepartments(departments)
-                                                    setIsTimeOffModalOpen(true)
-                                                }}
-                                            >
-                                                Request for All Departments
-                                            </Button>
-                                        </div>
 
-                                        <TimeOffRequestModal
-                                            isOpen={isTimeOffModalOpen}
-                                            onClose={() => setIsTimeOffModalOpen(false)}
-                                            selectedDepartments={selectedDepartments}
-                                            userId={userId}
-                                            defaultDate={day.date}
-                                            onSuccess={fetchSchedules}
-                                        />
-                                    </div>
-                                )}
 
                                 {day.isCurrentMonth && getHoursWorked(day.date) > 0 && (
                                     <div className="text-sm">

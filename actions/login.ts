@@ -102,7 +102,6 @@ export const login = async (
       redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
     });
 
-    console.log("Logged in!");
 
     return {
       success: "Logged in!",

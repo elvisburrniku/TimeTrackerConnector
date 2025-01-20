@@ -129,6 +129,27 @@ export class NotificationService {
     })
   }
 
+  async createTimeOffRequestNotification(
+    userId: string,
+    requestId: string,
+    status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  ): Promise<Notification> {
+    const notificationTypes = {
+      PENDING: NotificationType.TIME_OFF_REQUEST_PENDING,
+      APPROVED: NotificationType.TIME_OFF_REQUEST_APPROVED,
+      REJECTED: NotificationType.TIME_OFF_REQUEST_REJECTED,
+    };
+    return await this.createNotification({
+      userId,
+      title: `Time Off Request ${status.toLowerCase()}`,
+      message: `Your time off request has been ${status.toLowerCase()}`,
+      type: notificationTypes[status],
+      priority: status === 'REJECTED' ? NotificationPriority.HIGH : NotificationPriority.MEDIUM,
+      relatedEntityId: requestId,
+      relatedEntityType: 'TIMEOFF'
+    })
+  }
+
 }
 
 export const notificationService = new NotificationService()

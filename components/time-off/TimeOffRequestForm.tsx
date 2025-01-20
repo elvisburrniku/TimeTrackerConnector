@@ -30,6 +30,7 @@ export function TimeOffRequestForm({ departments, userId, defaultDate, onSuccess
   const { toast } = useToast()
 
 
+
   const removeDepartment = (deptId: string) => {
     setSelectedDepts(selectedDepts.filter(d => d.id !== deptId))
 

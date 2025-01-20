@@ -21,6 +21,7 @@ export function TimeOffRequestModal({
   defaultDate,
   onSuccess
 }: TimeOffRequestModalProps) {
+  console.log('selectedDepartments', selectedDepartments)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">

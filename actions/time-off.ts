@@ -32,6 +32,7 @@ export async function approveTimeOff(requestId: string, approverId: string) {
     const request = await timeOffRequestService.approveTimeOffRequest(requestId, approverId)
     return { success: "Time off request approved", data: request }
   } catch (error) {
+    console.error('Failed to approve time off request:', error)
     return { error: "Failed to approve time off request" }
   }
 }
@@ -41,6 +42,7 @@ export async function rejectTimeOff(requestId: string, approverId: string) {
     const request = await timeOffRequestService.rejectTimeOffRequest(requestId, approverId)
     return { success: "Time off request rejected", data: request }
   } catch (error) {
+    console.error('Failed to reject time off request:', error)
     return { error: "Failed to reject time off request" }
   }
 }

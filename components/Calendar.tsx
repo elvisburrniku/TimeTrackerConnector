@@ -27,7 +27,6 @@ export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const { recentEntries } = useTimeEntry()
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
-  console.log(selectedDay)
 
   const getDaysInMonth = (year: number, month: number) => {
 

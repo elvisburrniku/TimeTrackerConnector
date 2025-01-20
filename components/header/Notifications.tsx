@@ -90,6 +90,8 @@ export function NotificationsPopover() {
         }
     }
 
+    console.log('notifications', notifications)
+
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -198,12 +200,15 @@ export const getNotificationIcon = (type: NotificationType) => {
         case 'ROLE_UPDATED':
             return <Bell className="h-5 w-5 text-blue-500" />
         case 'TIMESHEET_PENDING':
+        case 'TIME_OFF_REQUEST_PENDING':
             return <Clock className="h-5 w-5 text-blue-500" />
         case 'TIMESHEET_APPROVED':
         case 'TIMESHEET_APPROVED_ALL':
         case 'TIMESHEET_DEPARTMENT_APPROVED_ALL':
+        case 'TIME_OFF_REQUEST_APPROVED':
             return <Check className="h-5 w-5 text-green-500" />
         case 'TIMESHEET_REJECTED':
+        case 'TIME_OFF_REQUEST_REJECTED':
             return <UserCheck className="h-5 w-5 text-red-500" />
         case 'SCHEDULE_CONFLICT':
         case 'MISSING_CLOCKOUT':
