@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { EmployeeDepartmentRole, User } from '@prisma/client'
+import { EmployeeDepartmentRole } from '@prisma/client'
 import { useState } from 'react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmployeeDepartmentWithUser } from './DepartmentEmployeeListDialog'
@@ -92,7 +92,7 @@ export function UpdateEmployeeDialog({ isOpen, onOpenChange, employee, onUpdate 
               step="0.01"
             />
             <p className="text-xs text-muted-foreground">
-              Employee's hourly compensation rate
+              Employee&apos;s hourly compensation rate
             </p>
           </div>
 

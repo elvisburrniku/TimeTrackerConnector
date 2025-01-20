@@ -21,6 +21,17 @@ export const updateDepartment = async (userId: string, id: string, name: string,
   }
 }
 
+export const getDeparmentById = async (departmentId: string) => {
+  const department = await departmentService.getDepartmentById(departmentId);
+
+  if (department) {
+    return {success: "Department successfully fetched", department}
+  } else {
+    return { error: "Failed to fetch department." };
+    
+  }
+}
+
 export const deleteDepartment = async (userId: string, id: string) => {
   const department = await departmentService.deleteDepartment(userId, id);
   if (department) {

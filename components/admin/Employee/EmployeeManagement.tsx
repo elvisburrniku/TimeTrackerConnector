@@ -37,7 +37,7 @@ export function EmployeeManagement({ employees: _e }: EmployeeManagementProps) {
   const { departments, permittedDepartments } = useTimeEntry();
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter(employee => {
+  return employees.filter(employee => {
       const matchesSearch = search.trim() === '' ||
         employee.name?.toLowerCase().includes(search.toLowerCase()) ||
         employee.email?.toLowerCase().includes(search.toLowerCase())

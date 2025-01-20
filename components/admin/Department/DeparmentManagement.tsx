@@ -15,6 +15,7 @@ import { AddDepartmentDialog } from './AddDepartmentDialog'
 import DepartmentEmployeeListDialog from './DepartmentEmployeeListDialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { EditDepartmentDialog } from './EditDepartmentDialog'
+import { DepartmentSettingsDialog } from './DepartmentSettingsDialog'
 
 interface DepartmentManagementProps {
     departments: DepartmentViewInterface[]
@@ -30,6 +31,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     const [isAddDepartmentDialogOpen, setIsAddDepartmentDialogOpen] = useState(false)
     const [isEmployeeListDialogOpen, setIsEmployeeListDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
     const { toast } = useToast()
     const user = useCurrentUser()
 
@@ -75,7 +77,7 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
     }
 
     const handleUpdateDepartment = (updated: Department) => {
-        setDepartments(departments.map(dept => 
+        setDepartments(departments.map(dept =>
             dept.id === updated.id ? { ...dept, ...updated } : dept
         ))
     }
@@ -135,10 +137,10 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => { setSelectedDepartment(department); setIsEmployeeListDialogOpen(true) }}>
                                                     <Users className="w-4 h-4 mr-2" />
-                                                    
+
                                                     View Employees
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => { 
+                                                <DropdownMenuItem onClick={() => {
                                                     setSelectedDepartment(department)
                                                     setIsEditDialogOpen(true)
                                                 }}>
@@ -182,11 +184,11 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
 
                                         <TooltipProvider>
                                             <Tooltip delayDuration={0} disableHoverableContent>                                                <TooltipTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="text-orange-600 disabled:cursor-not-allowed">
-                                                        <Clock className="w-4 h-4 mr-2" />
-                                                        Manage Timesheets
-                                                    </Button>
-                                                </TooltipTrigger>
+                                                <Button variant="outline" size="sm" className="text-orange-600 disabled:cursor-not-allowed">
+                                                    <Clock className="w-4 h-4 mr-2" />
+                                                    Manage Timesheets
+                                                </Button>
+                                            </TooltipTrigger>
                                                 <TooltipContent>
                                                     <p>You can manage the timesheets from Employee Management tab</p>
                                                 </TooltipContent>
@@ -195,7 +197,15 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                                         <TooltipProvider>
                                             <Tooltip delayDuration={0} disableHoverableContent>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="text-green-600">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-green-600"
+                                                        onClick={() => {
+                                                            setSelectedDepartment(department)
+                                                            setIsSettingsDialogOpen(true)
+                                                        }}
+                                                    >
                                                         <Settings className="w-4 h-4 mr-2" />
                                                         Settings
                                                     </Button>
@@ -247,6 +257,13 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                     isOpen={isEditDialogOpen}
                     onOpenChange={setIsEditDialogOpen}
                     onUpdate={handleUpdateDepartment}
+                />
+            )}
+            {selectedDepartment && (
+                <DepartmentSettingsDialog
+                    department={selectedDepartment}
+                    isOpen={isSettingsDialogOpen}
+                    onOpenChange={setIsSettingsDialogOpen}
                 />
             )}
         </Card>
