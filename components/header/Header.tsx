@@ -43,7 +43,9 @@ export function Header({ user }: HeaderProps) {
                 <Button variant="ghost">Login</Button>
               </LoginButton>
               <RegisterButton>
-                <Button variant="ghost">Register</Button>
+                <Button variant="ghost"
+                  className='bg-orange-600 hover:bg-orange-700 text-gray-50 hover:text-white'
+                >Register</Button>
               </RegisterButton>
             </>
           )}
