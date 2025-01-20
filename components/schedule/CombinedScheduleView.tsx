@@ -129,7 +129,7 @@ export function CombinedScheduleView({ departments, userId }: CombinedScheduleVi
                             <Dialog key={day.date.toISOString()}>
                                 <DialogTrigger asChild>
                                     <div className={cn(
-                                        "h-12 p-2 bg-white hover:bg-gray-50 cursor-pointer flex items-start justify-start",
+                                        "h-10 bg-white hover:bg-gray-50 cursor-pointer flex items-start justify-start",
                                         !day.isCurrentMonth && "text-gray-400",
                                         day.isToday && "bg-orange-200 border-orange-400",
                                         hasSchedule && "font-medium"
