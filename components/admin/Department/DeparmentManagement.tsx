@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreVertical, Users, Clock, Settings, Plus, Trash, Edit, RefreshCcw, PlusCircle } from 'lucide-react'
-import { Department } from '@prisma/client'
+import { Department, UserRole } from '@prisma/client'
 import { deleteDepartment, getAllDepartments } from '@/actions/department'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -90,10 +90,10 @@ export function DepartmentManagement({ departments: d }: DepartmentManagementPro
                         <CardTitle className="text-2xl">Department Management</CardTitle>
                         <CardDescription>Manage your organization&apos;s departments and employees</CardDescription>
                     </div>
-                    <Button onClick={() => setIsAddDepartmentDialogOpen(true)}>
+                    {user?.role === UserRole.ADMIN && <Button onClick={() => setIsAddDepartmentDialogOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Department
-                    </Button>
+                    </Button>}
                 </div>
             </CardHeader>
             <CardContent>
