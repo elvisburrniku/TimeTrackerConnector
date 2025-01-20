@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { format } from 'date-fns'
 import { DepartmentSchedule } from '@prisma/client'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface TimeGridProps {
   shifts: Array<{
@@ -129,5 +130,30 @@ export function TimeGrid({ shifts, onChange, existingSchedule,disabled = false }
         ))}
       </div>
     </div>
+  )
+}
+
+export function GlowingDot() {
+  return (
+    <div className="relative w-2 h-2 mr-2">
+      <div className="absolute w-full h-full bg-green-500 rounded-full animate-ping opacity-75"></div>
+      <div className="relative w-full h-full bg-green-500 rounded-full"></div>
+    </div>
+  )
+}
+
+export function AnimatedValue({ value }: { value: string }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.2 }}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
   )
 }

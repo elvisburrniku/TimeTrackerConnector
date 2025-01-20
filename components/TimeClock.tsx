@@ -8,9 +8,13 @@ import { Department } from '@prisma/client';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { clockIn as _clockIn, clockOut as _clockOut } from '@/actions/time-entry';
-import { useSpring, animated } from '@react-spring/web';
 import { differenceInSeconds, format } from 'date-fns';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Building2, Clock, Timer } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils';
+import { AnimatedValue, GlowingDot } from './admin/TimeSheet/TimeGrid';
+import { Badge } from './ui/badge';
 
 interface TimeClockProps {
   departments: Department[];
@@ -104,106 +108,141 @@ export function TimeClock({ departments }: TimeClockProps) {
     }
   };
 
-  const springProps = useSpring({
-    from: { opacity: 0, transform: 'translateY(-20px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    config: { tension: 170, friction: 26 },
-  });
-
   return (
-    <Card className="h-full grid place-items-center">
-      <CardHeader className="border-b">
-        <CardTitle>Employee Time Clock</CardTitle>
+    <Card className="h-full">
+      <CardHeader className="border-b bg-gradient-to-r from-orange-50 to-orange-100">
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5 text-orange-600" />
+          Time Clock
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="grid gap-6">
-          {/* Department Selection Section */}
-          {!currentEntry && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-700">Department Selection</h3>
-                <span className="text-sm text-gray-500">{departments.length} departments available</span>
-              </div>
-              {departments.length > 0 ? (
-                <div className="space-y-4">
-                  <Select 
-                    value={selectedDepartment?.id} 
-                    onValueChange={(id) => setSelectedDepartment(departments.find(dept => dept.id === id) || null)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger className="w-full h-12 text-lg bg-gray-50 border-2 hover:bg-gray-100 transition-colors">
-                      <SelectValue placeholder="Select your department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departments.map((dept) => (
-                        <SelectItem 
-                          key={dept.id} 
-                          value={dept.id}
-                          className="py-3 text-base hover:bg-orange-50"
-                        >
-                          {dept.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedDepartment && (
-                    <div className="p-4 bg-orange-50 rounded-lg">
-                      <p className="font-medium text-orange-700">Selected: {selectedDepartment.name}</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-8 text-center bg-gray-50 rounded-lg">
-                  <p className="text-gray-500">You are not assigned to any department</p>
-                  <p className="text-sm text-gray-400 mt-2">Please contact your administrator</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Clock Status Section */}
-          <div className="space-y-4">
-            <div className="text-center p-6 rounded-lg bg-gray-50">
-              <h3 className="text-xl font-semibold mb-2">
-                {currentEntry ? 'Currently Working' : 'Ready to Start'}
-              </h3>
-              {currentEntry && (
-                <animated.div style={springProps} className="space-y-3">
-                  <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                    <span>Active Session</span>
-                  </div>
-                  <p className="text-lg text-gray-600">
-                    Working in: {departments.find(dept => dept.id === currentEntry.departmentId)?.name}
-                  </p>
-                  <p className="text-3xl font-mono font-bold tracking-wider">{time}</p>
-                  <p className="text-sm text-gray-500">
-                    Started at: {format(new Date(currentEntry.clockIn), 'hh:mm a')}
-                  </p>
-                </animated.div>
-              )}
-            </div>
-
-            {/* Action Button */}
-            <Button
-              onClick={handleClockInOut}
-              className={`w-full py-6 text-xl font-semibold transition-all duration-200 ${
-                currentEntry 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-orange-500 hover:bg-orange-600 text-white'
-              }`}
-              disabled={loading || (!currentEntry && !selectedDepartment)}
+      <CardContent className="p-6">
+        <AnimatePresence mode="wait">
+          {!currentEntry ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
             >
-              <div className="flex items-center justify-center space-x-2">
-                {loading && <LoadingSpinner />}
-                <span>
-                  {currentEntry ? 'End Shift (Clock Out)' : 'Start Shift (Clock In)'}
-                </span>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-orange-600" />
+                    Select Department
+                  </h3>
+                  <Badge variant="secondary">
+                    {departments.length} Available
+                  </Badge>
+                </div>
+
+                {departments.length > 0 ? (
+                  <div className="space-y-4">
+                    <Select
+                      value={selectedDepartment?.id}
+                      onValueChange={(id) => setSelectedDepartment(departments.find(dept => dept.id === id) || null)}
+                      disabled={loading}
+                    >
+                      <SelectTrigger className="w-full h-12 text-lg bg-white border-2 hover:border-orange-200 transition-colors">
+                        <SelectValue placeholder="Choose your department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem
+                            key={dept.id}
+                            value={dept.id}
+                            className="py-3 text-base hover:bg-orange-50"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4" />
+                              {dept.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {selectedDepartment && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200"
+                      >
+                        <p className="font-medium text-orange-800">
+                          {selectedDepartment.name}
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center bg-gray-50 rounded-lg border-2 border-dashed">
+                    <p className="text-gray-600">No departments assigned</p>
+                    <p className="text-sm text-gray-500 mt-2">Contact administrator</p>
+                  </div>
+                )}
               </div>
-            </Button>
-          </div>
-        </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="space-y-6"
+            >
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                  <GlowingDot />
+                  <span>Active Session</span>
+                </div>
+                
+                <div className="p-8 rounded-lg bg-gradient-to-b from-orange-50 to-orange-100 border border-orange-200">
+                  <h3 className="text-xl font-medium text-orange-900 mb-4">
+                    {departments.find(dept => dept.id === currentEntry.departmentId)?.name}
+                  </h3>
+                  
+                  <div className="font-mono text-4xl font-bold tracking-wider text-orange-800">
+                    <AnimatedValue value={time} />
+                  </div>
+                  
+                  <div className="mt-4 flex items-center justify-center gap-2 text-orange-600">
+                    <Timer className="h-4 w-4" />
+                    Started: {format(new Date(currentEntry.clockIn), 'hh:mm a')}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6"
+        >
+          <Button
+            onClick={handleClockInOut}
+            className={cn(
+              "w-full py-6 text-xl font-medium transition-all duration-300",
+              currentEntry 
+                ? "bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl"
+                : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl",
+              loading && "opacity-80"
+            )}
+            disabled={loading || (!currentEntry && !selectedDepartment)}
+          >
+            <motion.div 
+              className="flex items-center justify-center gap-3"
+              whileTap={{ scale: 0.95 }}
+            >
+              {loading ? <LoadingSpinner /> : (
+                <>
+                  {currentEntry ? "End Shift" : "Start Shift"}
+                </>
+              )}
+            </motion.div>
+          </Button>
+        </motion.div>
       </CardContent>
     </Card>
-  );
+  )
 }
