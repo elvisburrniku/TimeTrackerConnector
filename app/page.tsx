@@ -10,6 +10,7 @@ import { QuickActions } from '@/components/home/QuickActions'
 import { AdminSection } from '@/components/home/AdminSection'
 import { Badge } from '@/components/ui/badge'
 import { FeaturesGrid } from '@/components/home/FeaturesGrid'
+import { TestCredentials } from '@/components/home/TestCredentials'
 
 export default async function HomePage() {
     const user = await currentUser();
@@ -66,6 +67,8 @@ export default async function HomePage() {
                             <FeaturesGrid />
                         </div>
                     </section>
+
+                    <TestCredentials />
 
                     {/* Footer */}
                     <footer className="py-12 bg-white">

@@ -22,20 +22,27 @@ export const USERS = [
   {
     email: 'admin@timeclock.com',
     name: 'Admin User',
+    type: "Admin",
     password: 'admin123',
-    role: UserRole.ADMIN
+    role: UserRole.ADMIN,
+    description: "Full access to all features"
   },
   {
     email: 'john@timeclock.com',
     name: 'John Doe',
+    type: "Employee",
     password: 'employee123',
-    role: UserRole.USER
+    role: UserRole.USER,
+    description: "Basic time tracking access"
+
   },
   {
+    type: "Manager",
     email: 'manager@timeclock.com',
     name: 'Manager User',
     password: 'manager123',
-    role: UserRole.USER
+    role: UserRole.USER,
+    description: "Department management access"
   }
 ]
 
