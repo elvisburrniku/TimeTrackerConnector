@@ -8,12 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EmployeeListItem } from './EmployeeListItem';
 
 import { useDebouncedCallback } from 'use-debounce';
-import EmployeeCard from './EmployeeCard';
 
 
-const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: AddEmployeeToDepartmentDialogProps) => {
+export default function AddEmployeeToDepartmentDialog({ isOpen, department, onOpenChange }: AddEmployeeToDepartmentDialogProps) {
     const [employees, setEmployees] = useState<UserWithDepartments[]>([]);
     const [search, setSearch] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -149,16 +149,16 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
                         )}
                     </div>
 
-                    {search && (
-                        <ScrollArea className="h-[400px] rounded-md border">
+                    {search ? (
+                        <ScrollArea className="h-[400px]">
                             {employees.length === 0 ? (
                                 <div className="p-4 text-center text-sm text-muted-foreground">
                                     No employees found
                                 </div>
                             ) : (
-                                <div className="p-2">
+                                <div className="space-y-2">
                                     {employees.map((employee) => (
-                                        <EmployeeCard
+                                        <EmployeeListItem
                                             key={employee.id}
                                             employee={employee}
                                             department={department}
@@ -169,9 +169,7 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
                                 </div>
                             )}
                         </ScrollArea>
-                    )}
-
-                    {!search && (
+                    ) : (
                         <div className="py-6 text-center text-sm text-muted-foreground">
                             Enter a name or email to search
                         </div>
@@ -182,8 +180,6 @@ const AddEmployeeToDepartmentDialog = ({ isOpen, department, onOpenChange }: Add
     )
 }
 
-
-export default AddEmployeeToDepartmentDialog;
 
 export interface AddEmployeeToDepartmentDialogProps {
     isOpen: boolean;
