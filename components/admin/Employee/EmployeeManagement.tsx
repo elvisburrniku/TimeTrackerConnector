@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,26 +27,27 @@ interface EmployeeManagementProps {
   employees: EmployeeViewInterface[]
 }
 
-export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
+export function EmployeeManagement({ employees: _e }: EmployeeManagementProps) {
   const [employees, setEmployees] = useState(_e)
   const [search, setSearch] = useState('')
   const { toast } = useToast()
   const user = useCurrentUser()
   const [loading, setLoading] = useState(false)
-  const [filteredEmployees, setFilteredEmployees] = useState(employees)
-  const {departments, departmentMap, permittedDepartments} = useTimeEntry();
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const { departments, permittedDepartments } = useTimeEntry();
 
-  useEffect(() => {
-    setFilteredEmployees(
-      employees.filter(employee =>
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(employee => {
+      const matchesSearch = search.trim() === '' ||
         employee.name?.toLowerCase().includes(search.toLowerCase()) ||
-        employee.email?.toLowerCase().includes(search.toLowerCase()) ||
-        departmentMap[employee.id]?.name?.toLowerCase().includes(search.toLowerCase())
-      )
-    )
-  }, [search, employees, departmentMap])
+        employee.email?.toLowerCase().includes(search.toLowerCase())
 
+      const matchesDepartment = selectedDepartment === 'all' ||
+        employee.departments.some(dept => dept.departmentId === selectedDepartment)
 
+      return matchesSearch && matchesDepartment
+    })
+  }, [employees, search, selectedDepartment])
 
   const reloadEmployee = async () => {
     if (!user || !user.id) {
@@ -133,28 +134,62 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
       <CardContent>
         <div className="space-y-6">
           {/* Search and Filters */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 justify-between">
             <Input
-              placeholder="Search by name, email, or department..."
+              placeholder="Search employees..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-md"
             />
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by department" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className='flex gap-2'>
+              <Select
+                value={selectedDepartment}
+                onValueChange={setSelectedDepartment}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    All Departments
+                    <span className="ml-2 text-muted-foreground">
+                      ({employees.length})
+                    </span>
+                  </SelectItem>
+                  {departments.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      <div className="flex justify-between items-center w-full">
+                        <span>{dept.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({employees.filter(e =>
+                            e.departments.some(d => d.departmentId === dept.id)
+                          ).length})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedDepartment && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setSelectedDepartment('all');
+                  }}
+                >
+                  Clear Filter
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Employee List */}
           {loading ? (
             <div className="text-center py-8">Loading employees...</div>
+          ) : filteredEmployees.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No employees found</div>
           ) : (
             filteredEmployees.map((employee) => (
               <Collapsible key={employee.id} className="border rounded-lg">
@@ -212,7 +247,7 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                               </div>
                               <div>
                                 <label className="text-sm font-medium">Position</label>
-                               <Input value={dept.position ?? ''} onChange={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
+                                <Input value={dept.position ?? ''} onChange={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
                               </div>
                               <div>
                                 <label className="text-sm font-medium">Hourly Rate</label>
@@ -223,7 +258,7 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                                 />
                               </div>
 
-                             
+
                             </div>
                           </div>
                         ))}
@@ -240,8 +275,8 @@ export function EmployeeManagement({ employees: _e}: EmployeeManagementProps) {
                       <TabsContent value="timesheet">
                         <div className="p-4 bg-slate-50 rounded-lg">
                           <h4 className="font-medium mb-4">Recent Timesheets</h4>
-                          <TimeSheetManagement userId={employee.id} employeeDepartments={employee.departments} />                
-                          </div>
+                          <TimeSheetManagement userId={employee.id} employeeDepartments={employee.departments} />
+                        </div>
                       </TabsContent>
                     </Tabs>
                   </div>
