@@ -51,11 +51,13 @@ export const updateEmployeeInfo = async (
 ) => {
   try {
     const updated = await departmentService.updateEmployeeInfo(roleId, data);
+
     if (updated) {
       return { success: "Employee information updated successfully!" };
     }
     return { error: "Failed to update employee information." };
   } catch (error) {
+    console.error("Failed to update employee info:", error);
     return { error: "Something went wrong." };
   }
 };

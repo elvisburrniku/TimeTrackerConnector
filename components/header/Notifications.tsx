@@ -90,7 +90,6 @@ export function NotificationsPopover() {
         }
     }
 
-    console.log('notifications', notifications)
 
 
     return (

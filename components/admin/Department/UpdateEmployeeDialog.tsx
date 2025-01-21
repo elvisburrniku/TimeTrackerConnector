@@ -22,6 +22,7 @@ export function UpdateEmployeeDialog({ isOpen, onOpenChange, employee, onUpdate 
   const [position, setPosition] = useState(employee.position)
   const [loading, setLoading] = useState(false)
 
+
   const handleSubmit = async () => {
     setLoading(true)
     await onUpdate(employee.id, {

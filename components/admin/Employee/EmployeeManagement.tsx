@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EmployeeDepartment, User, EmployeeDepartmentRole } from '@prisma/client'
-import { getEmployessByDepartmentIds, removeEmployeeFromDepartment } from '@/actions/employees'
+import { getEmployessByDepartmentIds, removeEmployeeFromDepartment, updateEmployeeInfo } from '@/actions/employees'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ReloadIcon } from '@radix-ui/react-icons'
@@ -16,6 +16,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/co
 import TimeSheetManagement from '../TimeSheet/TimeSheetManagement'
 import ScheduleManagement from '../TimeSheet/ScheduleManagement'
 import { useTimeEntry } from '@/_context/TimeEntryContext'
+import { Pencil, Trash2 } from 'lucide-react'
+import { EmployeeDepartmentWithUser } from '../Department/DepartmentEmployeeListDialog'
+import { UpdateEmployeeDialog } from '../Department/UpdateEmployeeDialog'
+import Decimal from 'decimal.js'
 
 
 
@@ -35,9 +39,11 @@ export function EmployeeManagement({ employees: _e }: EmployeeManagementProps) {
   const [loading, setLoading] = useState(false)
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const { departments, permittedDepartments } = useTimeEntry();
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
+  const [selectedDeptEmployee, setSelectedDeptEmployee] = useState<EmployeeDepartmentWithUser | null>(null)
 
   const filteredEmployees = useMemo(() => {
-  return employees.filter(employee => {
+    return employees.filter(employee => {
       const matchesSearch = search.trim() === '' ||
         employee.name?.toLowerCase().includes(search.toLowerCase()) ||
         employee.email?.toLowerCase().includes(search.toLowerCase())
@@ -100,19 +106,43 @@ export function EmployeeManagement({ employees: _e }: EmployeeManagementProps) {
     }
   }
 
-  const handleChangePay = async (employeeId: string, departmentId: string, pay: string, role: EmployeeDepartmentRole) => {
-    if (!user || !user.id) {
+  const handleUpdateEmployee = async (roleId: string, data: { role: EmployeeDepartmentRole; hourlyRate: number; position: string }) => {
+    const response = await updateEmployeeInfo(roleId, data)
+    if (response.success) {
+      setEmployees(prevEmployees => 
+        prevEmployees.map(emp => {
+          if (emp.id === selectedDeptEmployee?.employee.id) {
+            return {
+              ...emp,
+              departments: emp.departments.map(dept => {
+                if (dept.departmentId === selectedDeptEmployee.departmentId) {
+                  return {
+                    ...dept,
+                    role: data.role,
+                    hourlyRate: new Decimal(data.hourlyRate),
+                    position: data.position
+                  }
+                }
+                return dept
+              })
+            }
+          }
+          return emp
+        })
+      )
+
+      toast({
+        title: 'Success',
+        description: response.success
+      })
+    } else {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'You must be logged in to update an employee',
+        description: response.error
       })
     }
-
-    console.log(employeeId, departmentId, pay, role)
-
   }
-
 
   return (
     <Card>
@@ -222,46 +252,92 @@ export function EmployeeManagement({ employees: _e }: EmployeeManagementProps) {
                       </TabsList>
 
                       <TabsContent value="departments">
-                        {employee.departments.map(dept => (
-                          <div key={dept.departmentId} className="mb-4 p-4 bg-slate-50 rounded-lg">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-medium">{departments.find(d => d.id === dept.departmentId)?.name}</h4>
-                              <Button variant="destructive" size="sm" onClick={() => handleRemoveEmployee(employee.id, dept.departmentId)}>
-                                Remove
-                              </Button>
+                        <div className="grid gap-4">
+                          {employee.departments.map(dept => (
+                            <div key={dept.departmentId}
+                              className="overflow-hidden bg-white rounded-lg border border-gray-100 hover:shadow-md transition-all"
+                            >
+                              <div className="flex items-center justify-between p-4 border-b">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="text-lg font-medium">
+                                      {departments.find(d => d.id === dept.departmentId)?.name}
+                                    </h4>
+                                    <Badge variant={
+                                      dept.role === 'ADMIN' ? 'default' :
+                                        dept.role === 'MANAGER' ? 'secondary' : 'outline'
+                                    }>
+                                      {dept.role}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    {dept.position || 'No position set'}
+                                  </p>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedDeptEmployee({
+                                        ...dept,
+                                        employee: employee,
+                                        id: dept.id
+                                      })
+                                      setIsUpdateDialogOpen(true)
+                                    }}
+                                  >
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Edit Role
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:bg-red-50"
+                                    onClick={() => handleRemoveEmployee(employee.id, dept.departmentId)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div className="p-4 grid grid-cols-3 gap-4">
+                                <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                                  <p className="text-sm text-orange-600 font-medium">Role Access</p>
+                                  <p className="mt-1 text-sm">
+                                    {dept.role === 'ADMIN' ? 'Full department access' :
+                                      dept.role === 'MANAGER' ? 'Can manage schedules & employees' :
+                                        'Basic employee access'}
+                                  </p>
+                                </div>
+
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                                  <p className="text-sm text-blue-600 font-medium">Hourly Rate</p>
+                                  <p className="mt-1 text-2xl font-semibold text-blue-700">
+                                    ${Number(dept.hourlyRate).toFixed(2)}
+                                  </p>
+                                </div>
+
+                                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                                  <p className="text-sm text-green-600 font-medium">Position</p>
+                                  <p className="mt-1 text-2xl font-semibold text-green-700">
+                                    {dept.position || 'No position set'}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
+                          ))}
+                        </div>
 
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                              <div>
-                                <label className="text-sm font-medium">Role</label>
-                                <Select value={dept.role} onValueChange={(value) => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), value as EmployeeDepartmentRole)}>
-                                  <SelectTrigger>
-                                    <SelectValue>{dept.role}</SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.values(EmployeeDepartmentRole).map(role => (
-                                      <SelectItem key={role} value={role}>{role}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">Position</label>
-                                <Input value={dept.position ?? ''} onChange={() => handleChangePay(employee.id, dept.departmentId, dept.hourlyRate.toString(), dept.role)} />
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">Hourly Rate</label>
-                                <Input
-                                  type="number"
-                                  value={Number(dept.hourlyRate)}
-                                  onChange={(e) => handleChangePay(employee.id, dept.departmentId, e.target.value, dept.role)}
-                                />
-                              </div>
-
-
-                            </div>
-                          </div>
-                        ))}
+                        {selectedDeptEmployee && (
+                          <UpdateEmployeeDialog
+                            isOpen={isUpdateDialogOpen}
+                            onOpenChange={setIsUpdateDialogOpen}
+                            employee={selectedDeptEmployee}
+                            onUpdate={handleUpdateEmployee}
+                          />
+                        )}
                       </TabsContent>
 
                       <TabsContent value="schedule">
