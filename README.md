@@ -16,6 +16,8 @@ Employee:  john@timeclock.com / employee123
 Manager:   manager@timeclock.com / manager123
 ```
 
+![Landing Hero](./public/snapshots/landing-hero.png)
+
 ## Roles
 
 ### Super Admin
