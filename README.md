@@ -2,6 +2,7 @@
 
 A comprehensive employee time management system built with Next.js 14 and TypeScript. Manage timesheets, schedules, departments, and leave requests with real-time updates.
 
+![Landing Hero](./public/snapshots/landing-hero.png)
 
 ## Live Demo
 
@@ -16,7 +17,6 @@ Employee:  john@timeclock.com / employee123
 Manager:   manager@timeclock.com / manager123
 ```
 
-![Landing Hero](./public/snapshots/landing-hero.png)
 
 ## Roles
 
