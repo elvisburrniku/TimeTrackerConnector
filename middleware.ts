@@ -1,5 +1,6 @@
-import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { verifyToken } from "@/lib/custom-auth";
 import {
   DEFAULT_LOGIN_REDIRECT,
   apiAuthPrefix,
@@ -7,11 +8,13 @@ import {
   publicRoutes,
 } from "@/routes";
 
-const { auth } = NextAuth(authConfig);
-
-export default auth((req) => {
+export function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  
+  // Get token from cookie
+  const token = req.cookies.get('auth-token')?.value;
+  const user = token ? verifyToken(token) : null;
+  const isLoggedIn = !!user;
 
   const isApiRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
@@ -43,7 +46,7 @@ export default auth((req) => {
   }
 
   return;
-});
+}
 
 export const config = {
   matcher: [
