@@ -21,7 +21,7 @@ import {
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
-import { login } from "@/actions/login";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export const LoginForm = () => {

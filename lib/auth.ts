@@ -1,13 +1,10 @@
-import { auth } from "@/auth";
+import { getCurrentUser } from "@/lib/custom-auth";
 
 export const currentUser = async () => {
-  const session = await auth();
-
-  return session?.user;
+  return await getCurrentUser();
 };
 
 export const currentRole = async () => {
-  const session = await auth();
-
-  return session?.user.role;
+  const user = await getCurrentUser();
+  return user?.role;
 };
