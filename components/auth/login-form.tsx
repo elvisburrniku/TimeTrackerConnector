@@ -31,7 +31,7 @@ export const LoginForm = () => {
       ? "Email already in use with different provider!"
       : "";
 
-  const [showTwoFactor, setShowTwoFactor] = useState<boolean>(false);
+
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
@@ -44,34 +44,39 @@ export const LoginForm = () => {
     },
   });
 
+  const router = useRouter();
+  const callbackUrl = searchParams.get("callbackUrl");
+
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
     setError("");
     setSuccess("");
 
-    startTransition(() => {
-      login(values)
-        .then((data) => {
-          console.log("login data", data);
-          if (data?.error) {
-            form.reset();
-            setError(data.error);
-            return
-          }
+    startTransition(async () => {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        });
 
-          if (data?.twoFactor) {
-            setShowTwoFactor(true);
-            return
-          }
+        const data = await response.json();
 
-          if (data?.success) {
-            form.reset();
-            setSuccess(data.success);
-          }
+        if (!response.ok) {
+          setError(data.error || 'Login failed');
+          return;
+        }
 
-          window.location.reload();
-
-        })
-        .catch(() => setError("Something went wrong"));
+        setSuccess('Login successful!');
+        form.reset();
+        
+        // Redirect to callback URL or home
+        router.push(callbackUrl || '/');
+        router.refresh();
+      } catch (error) {
+        setError('Something went wrong!');
+      }
     });
   };
 
@@ -85,26 +90,7 @@ export const LoginForm = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
-            {showTwoFactor && (
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Two Factor Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="xxxxxx"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {!showTwoFactor && (
+            {(
               <>
                 <FormField
                   control={form.control}
@@ -159,7 +145,7 @@ export const LoginForm = () => {
           <FormSuccess message={success} />
 
           <Button disabled={isPending} type="submit" className="w-full bg-orange-600 hover:bg-orange-700">
-            {showTwoFactor ? "Confirm" : "Login"}
+            Login
           </Button>
         </form>
       </Form>
